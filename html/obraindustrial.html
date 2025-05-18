@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FRANZA: ¡Dale un nuevo aire a tu hogar con nuestras construcciones!">
+    <meta name="keywords" content="FRANZA, Contrucciones, Remodelaciones, Obras, Industriales, Civiles">
+    <link rel="icon" type="image/png" href="../img/webicon.png">
+    <title id="page-title"></title>
+    <link rel="stylesheet" href="../styles/css/style.css">
+    <link rel="stylesheet" href="../carrousel/styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <img src="../img/webicon.png" alt="FRANZA Logo">
+                <h1>FRANZA</h1>
+            </a>
+            <nav>
+                <input type="checkbox" id="menu-toggle">
+                <label for="menu-toggle" class="menu-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </label>
+                <ul class="menu">
+                    <li><a href="obrasciviles.html">Obras Civiles</a></li>
+                    <li><a href="obrasindustriales.html">Obras Industriales</a></li>
+                    <li><button class="presupuesto-btn" onclick="openWhatsApp()">SOLICITAR PRESUPUESTO</button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <div class="obra-container container">
+            <div class="obra-left">
+                <div><span id="obra-ubicacion"></span></div> <!-- variable ubicacion -->
+                <div><h2 id="obra-titulo"></h2></div> <!-- variable titulo -->
+                <div><h4 id="obra-quesehizo"></h4></div> <!-- variable quesehizo -->
+            </div>
+            <div class="obra-right">
+                <div><img id="imagen-portada" alt="Imagen princial de la obra"></div> <!-- variableimagenmain -->
+            </div>
+        </div>
+        <div class="obra-corte">
+            <button class="presupuesto-btn" onclick="openWhatsApp()"><h3>SOLICITAR PRESUPUESTO</h3></button>
+        </div>
+        <div class="carousel-container">
+            <div class="carousel">
+                <div class="carousel-item" data-index="0">
+                    <img id="img_carrousel1" alt="Imagen 1">
+                </div>
+                <div class="carousel-item active" data-index="1">
+                    <img id="img_carrousel2" alt="Imagen 2">
+                </div>
+                <div class="carousel-item" data-index="2">
+                    <img id="img_carrousel3" alt="Imagen 3">
+                </div>
+                <div class="carousel-item" data-index="3">
+                    <img id="img_carrousel4" alt="Imagen 4">
+                </div>
+                <div class="carousel-item" data-index="4">
+                    <img id="img_carrousel5" alt="Imagen 5">
+                </div>
+            </div>
+            
+            <button class="carousel-button prev" aria-label="Anterior">
+                <span style="transform: translateX(-1px) translateY(-2px);">&#10094;</span>
+            </button>
+            <button class="carousel-button next" aria-label="Siguiente">
+                <span style="transform: translateX(1px) translateY(-2px);">&#10095;</span>
+            </button>
+        </div>
+    </main>
+    <footer>
+        <div class="wrapper">
+            <a target="_blank" href="https://www.instagram.com/franzaconstrucciones?igsh=Zzl5emNueml3bXI5&utm_source=qr">
+                <li class="icon instagram">
+                    <span><img src="../img/instagram.png" alt=""></span>
+                </li>
+            </a>
+            <a target="_blank" href="https://www.linkedin.com/company/franza-construcciones/">
+                <li class="icon linkedin">
+                    <span><img src="../img/linkedin.png" alt=""></span>
+                </li>
+            </a>
+            <a target="_blank" href="">
+                <li class="icon facebook">
+                    <span><img src="../img/facebook.png" alt=""></span>
+                </li>
+            </a>
+        </div>
+        <div>
+            <span>© 2024 FRANZA. Todos los derechos reservados.</span>
+        </div>
+    </footer>  
+</body>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const obraId = params.get("id"); // 👉 esto es por ejemplo: "AzoteaCaba"
+
+        fetch("../folders.json")
+        .then(res => res.json())
+        .then(folders => {
+            const obra = folders.ObrasIndustriales[obraId]; // 👈 Ahora sí, extraés correctamente la info del JSON
+            if (!obra) {
+                console.error("Obra no encontrada");
+                return;
+            }
+
+
+            // Cambiar título
+            document.getElementById("page-title").textContent = ("Obra Civil - " + obra.Titulo);
+            document.getElementById('obra-titulo').textContent = obra.Titulo;
+            document.getElementById('obra-ubicacion').textContent = obra.Ubicacion;
+            document.getElementById('obra-quesehizo').textContent = obra.Quesehizo;
+
+            // Imagen principal
+            const imgPortada = document.getElementById("imagen-portada");
+            imgPortada.src = `../img/obrasindustriales/${obraId}/${obraId}.jpg`;
+
+            // Imagenes Carrousel
+            const imgCarrousel1 = document.getElementById("img_carrousel1");
+            imgCarrousel1.src = `../img/obrasindustriales/${obraId}/1.jpg`;
+            const imgCarrousel2 = document.getElementById("img_carrousel2");
+            imgCarrousel2.src = `../img/obrasindustriales/${obraId}/2.jpg`;
+            const imgCarrousel3 = document.getElementById("img_carrousel3");
+            imgCarrousel3.src = `../img/obrasindustriales/${obraId}/3.jpg`;
+            const imgCarrousel4 = document.getElementById("img_carrousel4");
+            imgCarrousel4.src = `../img/obrasindustriales/${obraId}/4.jpg`;
+            const imgCarrousel5 = document.getElementById("img_carrousel5");
+            imgCarrousel5.src = `../img/obrasindustriales/${obraId}/5.jpg`;
+        })
+    </script>
+    <script src="../js/carrousel.js"></script>
+    <script src="../js/whatsapp.js"></script>
+</html>

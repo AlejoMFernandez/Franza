@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Montserrat", serif;
+}
+
+// Generals
+@import "partials/header.scss";
+
+// Indexs
+@import "partials/home.scss";
+@import "partials/responsive/home-responsive.scss";
+
+@import "partials/obrasciviles.scss";
+@import "partials/responsive/obrasciviles-responsive.scss";
+
+@import "partials/obras.scss";
+@import "partials/footer.scss";
+@import "partials/carrousel.scss";
+
+@import "partials/responsive.scss";

@@ -1,0 +1,99 @@
+header {
+    background-color: #131313;
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.container{
+    width: 90% !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 15px !important;
+}
+
+header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.logo img {
+    height: 40px;
+    margin-right: 10px;
+}
+
+.logo h1 {
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #ffffff;
+}
+
+nav .menu {
+    display: flex;
+    list-style: none;
+    align-items: center;
+}
+
+nav .menu li {
+    margin-left: 30px;
+}
+
+nav .menu a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+nav .menu a:hover {
+    color: #d4af37;
+}
+
+/* Menú móvil */
+#menu-toggle {
+    display: none;
+}
+
+.menu-icon {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 21px;
+    cursor: pointer;
+}
+
+.menu-icon span {
+    display: block;
+    height: 3px;
+    width: 100%;
+    background-color: #ffffff;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.presupuesto-btn{
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    background-color: #b38838;
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.presupuesto-btn:hover{
+    background-color: #866321;
+}

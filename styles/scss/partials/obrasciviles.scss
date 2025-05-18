@@ -1,0 +1,60 @@
+body{
+    background-color: #181818;
+}
+
+.obrasindex-title{
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    margin-top: 50px;
+    text-transform: uppercase;
+}
+
+#contenedorObrasCiviles, #contenedorObrasIndustriales{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px !important;
+    margin-bottom: 50px !important;
+    max-width: 1400px !important;
+}
+
+.obracivil {
+    width: 250px;
+    height: 250px;
+    margin: 30px 22px 70px 22px;
+    background-color: black;
+    position: relative;
+    background-size: contain;
+    background-position: center; /* Centra la imagen */
+    background-repeat: no-repeat; /* Evita que la imagen se repita */
+    opacity: 0.8;
+    transition: scale 0.1s ease-in-out;
+}
+
+.obraimg{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
+}
+
+.obracivil:hover{
+    scale: 1.02;
+    opacity: 1;
+}
+
+.obraTitle{
+    color: #fff;
+    font-size: 16px;
+    margin: 2px 0 0 0;
+    font-weight: 400;
+}
+
+.obraUbi{
+    color: #a0a0a0;
+    font-size: 12px;
+    margin-top: 1px;
+}

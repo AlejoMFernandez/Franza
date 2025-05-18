@@ -1,0 +1,104 @@
+/* Media Query for Tablets (768px and below) */
+@media (max-width: 768px) {
+    .obra-container {
+        padding-block: 40px !important;
+    }
+    
+    .body-container {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    .obra-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .obra-right{
+        margin-top: 8px;
+    }
+
+    .obra-left, .obra-right {
+        flex: none;
+        width: 100%;
+    }
+
+    #obra-titulo{
+        margin-block: 10px;
+    }
+
+    .carousel-item {
+        width: 500px !important;
+        height: 500px;
+    }
+
+    .carousel-button {
+        padding: 8px;
+    }
+
+    .menu-icon {
+        display: flex;
+    }
+    
+    nav .menu {
+        position: absolute;
+        top: 80px;
+        left: 0;
+        right: 0;
+        background-color: #111111;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0;
+        gap: 20px;
+        transform: translateY(-150%);
+        opacity: 0;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    nav .menu li {
+        margin: 0;
+    }
+    
+    #menu-toggle:checked ~ .menu {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Media Query for Mobile (480px and below) */
+@media (max-width: 480px) {
+    .body-container {
+        padding: 5px;
+    }
+
+    .obra-container {
+        gap: 5px;
+    }
+
+    .obra-left, .obra-right {
+        width: 100%;
+    }
+
+    .obra-left h2 {
+        font-size: 1.2rem;
+    }
+
+    .obra-left h4 {
+        font-size: 1rem;
+    }
+
+    .carousel-container{
+        margin-block: 20px !important;
+    }
+
+    .carousel-item {
+        width: 400px;
+        height: 400px;
+    }
+
+    .carousel-button {
+        padding: 5px;
+    }
+
+}

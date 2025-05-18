@@ -1,0 +1,78 @@
+.obra-container{
+    display: flex;
+    height: auto;
+    padding-inline: 10%;
+    justify-content: space-between;
+    align-items: center;
+    padding-block: 80px !important;
+    gap: 80px;
+}
+
+.obra-left{
+    flex: 1;
+    color: white;
+}
+
+.obra-left div span{
+    background-color: #ffffff1a;
+    padding: 5px 10px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.obra-left div h2{
+    font-size: 52px;
+    line-height: 1.2;
+    margin-top: 18px;
+    margin-bottom: 30px;
+    font-weight: 700;
+}
+
+.obra-left div h4{
+    font-weight: 400;
+    font-size: 16px;
+    color: #cccccc;
+    max-width: 600px;
+    line-height: 1.6;
+}
+
+.obra-right{
+    flex: 1;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.obra-right div img{
+    width: 100%;
+    max-width: 550px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
+}
+
+.obra-corte{
+    background-color: #111111;
+    width: 100%;
+    padding: 40px;
+    display: grid;
+    place-items: center;
+}
+
+.presupuesto-btn{
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    background-color: #b38838;
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.presupuesto-btn:hover{
+    background-color: #866321;
+}
+
+.carousel-container{
+    margin-block: 80px !important; 
+}
