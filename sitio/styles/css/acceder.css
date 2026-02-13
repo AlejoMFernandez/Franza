@@ -1,0 +1,297 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+    --primary: #b38838;
+    --primary-dark: #866321;
+    --primary-lighter: #d4af37;
+    --background: #181818;
+    --surface: #111111;
+    --surface-light: #1a1a1a;
+    --text: #ffffff;
+    --text-muted: #999999;
+    --border-subtle: #2a2a2a;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body {
+    background: var(--background);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.btn-volver {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--text-muted);
+    padding: 10px 20px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all var(--transition);
+    z-index: 1000;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.btn-volver:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--text);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.login-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 420px;
+}
+
+.login-box {
+    background: var(--surface-light);
+    border-radius: var(--radius-xl);
+    padding: 40px 36px;
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-lg);
+}
+
+.login-logo {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.login-logo img {
+    width: 42px;
+    height: auto;
+}
+
+.login-title {
+    color: var(--text);
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 0;
+    font-family: 'Montserrat', 'Inter', sans-serif;
+}
+
+.login-subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+.login-form {
+    text-align: left;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 48px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--transition);
+}
+
+.password-toggle:hover {
+    color: var(--text);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 13px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-size: 14px;
+    transition: all var(--transition);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(179, 136, 56, 0.1);
+}
+
+.form-group input::placeholder {
+    color: #555;
+}
+
+.form-hint {
+    display: block;
+    color: #555;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-lighter) 100%);
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    margin-top: 8px;
+}
+
+.btn-login:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(179, 136, 56, 0.4);
+}
+
+.login-footer {
+    padding-top: 24px;
+    text-align: center;
+}
+
+.login-footer p {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.login-footer a {
+    color: var(--primary-lighter);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color var(--transition);
+}
+
+.login-footer a:hover {
+    color: var(--primary);
+}
+
+.msj {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 16px 24px;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    font-size: 14px;
+    z-index: 2000;
+    max-width: 400px;
+    text-align: left;
+    box-shadow: var(--shadow-lg);
+    animation: msjAccederIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes msjAccederIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.92); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes msjSlideOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(20px) scale(0.92); }
+}
+
+.msj-error {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+.msj-crear, .msj-exito {
+    background: #16a34a;
+    color: #ffffff;
+}
+
+.error-message {
+    display: block;
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+.input-error {
+    border-color: #ef4444 !important;
+}
+
+.input-error:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+@media (max-width: 500px) {
+    .login-box {
+        padding: 32px 24px;
+    }
+    
+    .login-title {
+        font-size: 20px;
+    }
+    
+    .btn-volver {
+        top: 14px;
+        left: 14px;
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+
+    .msj {
+        right: 16px;
+        left: 16px;
+        bottom: 16px;
+        max-width: none;
+    }
+}

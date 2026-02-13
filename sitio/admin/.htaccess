@@ -1,0 +1,18 @@
+# -----------------------------------------------
+# FRANZA Admin - URL Rewriting
+# -----------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /Franza/sitio/admin/
+
+    # Si el archivo o directorio existe, servirlo directamente
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # URLs amigables del admin
+    RewriteRule ^obras/?$ index.php?seccion=obras [L,QSA]
+    RewriteRule ^obras-agregar/?$ index.php?seccion=obras-agregar [L,QSA]
+    RewriteRule ^obras-editar/([0-9]+)/?$ index.php?seccion=obras-editar&id=$1 [L,QSA]
+    RewriteRule ^registrarse/?$ index.php?seccion=registrarse [L,QSA]
+</IfModule>
