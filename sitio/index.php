@@ -46,6 +46,46 @@ if(!isset($listaRutas[$seccion])) {
 
 $rutaOpciones = $listaRutas[$seccion];
 
+$seoPorSeccion = [
+    'inicio' => [
+        'titulo' => 'FRANZA | Obras civiles e industriales',
+        'descripcion' => 'FRANZA es una empresa constructora especializada en obras civiles e industriales, con más de 15 años de experiencia en proyectos de calidad.',
+    ],
+    'obrasciviles' => [
+        'titulo' => 'Obras Civiles | FRANZA',
+        'descripcion' => 'Descubrí las obras civiles de FRANZA: proyectos ejecutados con calidad, compromiso y excelencia técnica.',
+    ],
+    'obrasindustriales' => [
+        'titulo' => 'Obras Industriales | FRANZA',
+        'descripcion' => 'Conocé las obras industriales de FRANZA y nuestra experiencia en soluciones constructivas para la industria.',
+    ],
+    'obra-ver' => [
+        'titulo' => 'Detalle de Obra | FRANZA',
+        'descripcion' => 'Explorá el detalle de una obra de FRANZA, incluyendo información del proyecto e imágenes destacadas.',
+    ],
+    '404' => [
+        'titulo' => 'Página no encontrada | FRANZA',
+        'descripcion' => 'La página solicitada no está disponible. Volvé al inicio para seguir explorando FRANZA.',
+    ],
+];
+
+$seoActual = $seoPorSeccion[$seccion] ?? $seoPorSeccion['inicio'];
+
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['SERVER_PORT'] ?? null) == 443)
+    || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+$scheme = $isHttps ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? 'franza.com.ar';
+$baseUrl = $scheme . '://' . $host;
+
+$scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
+$scriptDir = ($scriptDir === '/' || $scriptDir === '.') ? '' : rtrim($scriptDir, '/');
+
+$requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$canonicalUrl = $baseUrl . $requestPath;
+$ogImageUrl = $baseUrl . $scriptDir . '/img/mainphoto.png';
+
 $autenticacion = new Autenticacion();
 
 // Flasheamos el mensaje de feedback
@@ -69,11 +109,29 @@ if($seccion === 'iniciar-sesion' || $seccion === 'registrarse') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="favicon.ico" sizes="any">
     <link rel="icon" href="favicon.png">
-    <title>FRANZA: <?= $rutaOpciones['titulo'];?></title>
+    <title><?= htmlspecialchars($seoActual['titulo'], ENT_QUOTES, 'UTF-8'); ?></title>
+    <meta name="description" content="<?= htmlspecialchars($seoActual['descripcion'], ENT_QUOTES, 'UTF-8'); ?>">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="<?= htmlspecialchars($canonicalUrl, ENT_QUOTES, 'UTF-8'); ?>">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="FRANZA">
+    <meta property="og:locale" content="es_AR">
+    <meta property="og:title" content="<?= htmlspecialchars($seoActual['titulo'], ENT_QUOTES, 'UTF-8'); ?>">
+    <meta property="og:description" content="<?= htmlspecialchars($seoActual['descripcion'], ENT_QUOTES, 'UTF-8'); ?>">
+    <meta property="og:url" content="<?= htmlspecialchars($canonicalUrl, ENT_QUOTES, 'UTF-8'); ?>">
+    <meta property="og:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8'); ?>">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?= htmlspecialchars($seoActual['titulo'], ENT_QUOTES, 'UTF-8'); ?>">
+    <meta name="twitter:description" content="<?= htmlspecialchars($seoActual['descripcion'], ENT_QUOTES, 'UTF-8'); ?>">
+    <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl, ENT_QUOTES, 'UTF-8'); ?>">
+
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="styles/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+ </head>
 <body>
     <div class="layout">
         <header>
