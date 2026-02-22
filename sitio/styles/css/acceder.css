@@ -295,3 +295,23 @@ body {
         max-width: none;
     }
 }
+
+@media (max-width: 360px) {
+    .login-box {
+        padding: 24px 16px;
+    }
+
+    .login-title {
+        font-size: 18px;
+    }
+
+    .form-group input {
+        padding: 11px 12px;
+        font-size: 13px;
+    }
+
+    .btn-login {
+        padding: 12px;
+        font-size: 13px;
+    }
+}
