@@ -232,6 +232,7 @@ if($seccion === 'iniciar-sesion' || $seccion === 'registrarse') {
             <div class="footer-bottom">
                 <div class="footer-bottom-inner">
                     <span>© <?= date('Y'); ?> <strong style="color: var(--primary-lighter);">FRANZA</strong>. Todos los derechos reservados.</span>
+                    <span>Desarrollado por <a href="https://alejomfernandez.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: var(--primary-lighter); text-decoration: underline;">Alejo Martin Fernandez</a></span>
                 </div>
             </div>
         </footer>  
