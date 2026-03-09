@@ -105,6 +105,7 @@ if($seccion === 'iniciar-sesion' || $seccion === 'registrarse') {
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta name="cf-2fa-verify" value="W1x36AnsZ6pVFj3vdSj1" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="favicon.ico" sizes="any">
@@ -225,7 +226,7 @@ if($seccion === 'iniciar-sesion' || $seccion === 'registrarse') {
                     </div>
                     <div class="footer-contact-item">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                        info@franzaconstrucciones.com
+                        p.allegranza@franza.com.ar
                     </div>
                 </div>
             </div>
