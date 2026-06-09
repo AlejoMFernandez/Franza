@@ -29,7 +29,7 @@ $obrasCiviles = (new Obras)->porTipo('civil');
             <a class="obra-card-listing" href="index.php?seccion=obra-ver&id=<?= (int)$obra->getObraId() ?>">
                 <div class="obra-card-listing-img">
                     <?php if($tieneImagen): ?>
-                        <img src="<?= $imgRelPath ?>" alt="<?= $titulo ?>">
+                        <img src="<?= $imgRelPath ?>" alt="<?= $titulo ?>" loading="lazy" width="800" height="800">
                     <?php else: ?>
                         <div class="obra-card-no-img">Sin imagen</div>
                     <?php endif; ?>

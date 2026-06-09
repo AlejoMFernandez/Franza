@@ -9,6 +9,7 @@
 use App\Autenticacion\Autenticacion;
 use App\Modelos\Obras;
 use App\Seguridad\Csrf;
+use App\Imagenes\ImagenOptimizador;
 
 require_once __DIR__ . '/../../bootstrap/init.php';
 
@@ -107,22 +108,25 @@ if($imagen && !empty($imagen['tmp_name'])) {
         exit;
     }
 
-    $base = pathinfo($imagen['name'], PATHINFO_FILENAME);
-    $seguro = preg_replace('/[^a-zA-Z0-9_-]/', '_', $base);
-    $nombreImagen = $seguro . '_' . time() . '.' . $ext;
-
     $tipoCarpeta = ($tipo === 'civil') ? 'obrasciviles' : 'obrasindustriales';
     $rutaImagenes = __DIR__ . "/../../img/{$tipoCarpeta}/{$carpeta}/";
     if (!is_dir($rutaImagenes)) {
         mkdir($rutaImagenes, 0777, true);
     }
 
-    if(!move_uploaded_file($imagen['tmp_name'], $rutaImagenes . $nombreImagen)) {
-        $_SESSION['mensajeFeedback'] = "Ocurrió un error al subir la imagen.";
-        $_SESSION['estadoFeedback'] = "error";
-        $_SESSION['datos_viejos'] = $_POST;
-        header("Location: ../index.php?seccion=obras-editar&id=" . $obra_id);
-        exit;
+    $base = pathinfo($imagen['name'], PATHINFO_FILENAME);
+    $nombreBase = preg_replace('/[^a-zA-Z0-9_-]/', '_', $base) . '_' . time();
+    $nombreImagen = ImagenOptimizador::guardarOptimizado($imagen['tmp_name'], $rutaImagenes, $nombreBase);
+
+    if ($nombreImagen === false) {
+        $nombreImagen = $nombreBase . '.' . $ext;
+        if (!move_uploaded_file($imagen['tmp_name'], $rutaImagenes . $nombreImagen)) {
+            $_SESSION['mensajeFeedback'] = "Ocurrió un error al subir la imagen.";
+            $_SESSION['estadoFeedback'] = "error";
+            $_SESSION['datos_viejos'] = $_POST;
+            header("Location: ../index.php?seccion=obras-editar&id=" . $obra_id);
+            exit;
+        }
     }
 }
 
@@ -181,10 +185,12 @@ try {
             if ($galeriaFiles['size'][$i] > 10485760) continue;
 
             $base = pathinfo($galeriaFiles['name'][$i], PATHINFO_FILENAME);
-            $seguro = preg_replace('/[^a-zA-Z0-9_-]/', '_', $base);
-            $nombreGaleria = $seguro . '_' . time() . '_' . $i . '.' . $ext;
+            $nombreBase = preg_replace('/[^a-zA-Z0-9_-]/', '_', $base) . '_' . time() . '_' . $i;
+            $resultado = ImagenOptimizador::guardarOptimizado($galeriaFiles['tmp_name'][$i], $rutaGaleria, $nombreBase);
 
-            move_uploaded_file($galeriaFiles['tmp_name'][$i], $rutaGaleria . $nombreGaleria);
+            if ($resultado === false) {
+                move_uploaded_file($galeriaFiles['tmp_name'][$i], $rutaGaleria . $nombreBase . '.' . $ext);
+            }
         }
     }
 

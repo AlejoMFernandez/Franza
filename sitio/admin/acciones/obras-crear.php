@@ -11,6 +11,7 @@ use App\Autenticacion\Autenticacion;
 use App\Modelos\Obras;
 use App\BaseDeDatos\DBConexion;
 use App\Seguridad\Csrf;
+use App\Imagenes\ImagenOptimizador;
 
 require_once __DIR__ . '/../../bootstrap/init.php';
 
@@ -104,24 +105,25 @@ if(!empty($imagen['tmp_name'])) {
         exit;
     }
 
-    // Generar nombre seguro y único
-    $base = pathinfo($imagen['name'], PATHINFO_FILENAME);
-    $seguro = preg_replace('/[^a-zA-Z0-9_-]/', '_', $base);
-    $nombreImagen = $seguro . '_' . time() . '.' . $ext;
-
-    // Ajusta el nombre de la carpeta según el tipo
-    $tipoCarpeta = ($tipo === 'civil') ? 'obrasciviles' : (($tipo === 'industrial') ? 'obrasindustriales' : 'obrasotros');
+    $tipoCarpeta = ($tipo === 'civil') ? 'obrasciviles' : 'obrasindustriales';
     $rutaImagenes = __DIR__ . "/../../img/{$tipoCarpeta}/{$carpeta}/";
     if (!is_dir($rutaImagenes)) {
-        mkdir($rutaImagenes, 0777, true); // Crea la carpeta si no existe
+        mkdir($rutaImagenes, 0777, true);
     }
 
-    if(!move_uploaded_file($imagen['tmp_name'], $rutaImagenes . $nombreImagen)) {
-        $_SESSION['mensajeFeedback'] = "Ocurrió un error inesperado al subir la imagen. La obra '<b>" . htmlspecialchars($titulo, ENT_QUOTES) . "</b>' no pudo ser creada.";
-        $_SESSION['estadoFeedback'] = "error";
-        $_SESSION['datos_viejos'] = $_POST;
-        header("Location: ../index.php?seccion=obras-agregar");
-        exit;
+    $base = pathinfo($imagen['name'], PATHINFO_FILENAME);
+    $nombreBase = preg_replace('/[^a-zA-Z0-9_-]/', '_', $base) . '_' . time();
+    $nombreImagen = ImagenOptimizador::guardarOptimizado($imagen['tmp_name'], $rutaImagenes, $nombreBase);
+
+    if ($nombreImagen === false) {
+        $nombreImagen = $nombreBase . '.' . $ext;
+        if (!move_uploaded_file($imagen['tmp_name'], $rutaImagenes . $nombreImagen)) {
+            $_SESSION['mensajeFeedback'] = "Ocurrió un error inesperado al subir la imagen. La obra '<b>" . htmlspecialchars($titulo, ENT_QUOTES) . "</b>' no pudo ser creada.";
+            $_SESSION['estadoFeedback'] = "error";
+            $_SESSION['datos_viejos'] = $_POST;
+            header("Location: ../index.php?seccion=obras-agregar");
+            exit;
+        }
     }
 }
 
@@ -162,10 +164,12 @@ try {
             if ($galeriaFiles['size'][$i] > 10485760) continue;
 
             $base = pathinfo($galeriaFiles['name'][$i], PATHINFO_FILENAME);
-            $seguro = preg_replace('/[^a-zA-Z0-9_-]/', '_', $base);
-            $nombreGaleria = $seguro . '_' . time() . '_' . $i . '.' . $ext;
+            $nombreBase = preg_replace('/[^a-zA-Z0-9_-]/', '_', $base) . '_' . time() . '_' . $i;
+            $resultado = ImagenOptimizador::guardarOptimizado($galeriaFiles['tmp_name'][$i], $rutaGaleria, $nombreBase);
 
-            move_uploaded_file($galeriaFiles['tmp_name'][$i], $rutaGaleria . $nombreGaleria);
+            if ($resultado === false) {
+                move_uploaded_file($galeriaFiles['tmp_name'][$i], $rutaGaleria . $nombreBase . '.' . $ext);
+            }
         }
     }
 

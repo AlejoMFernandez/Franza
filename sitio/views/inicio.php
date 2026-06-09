@@ -56,7 +56,7 @@ $obrasRandom = Obras::GetRandomObra(6);
                     <a href="index.php?seccion=obra-ver&id=<?= (int)$obra['obra_id'] ?>" class="obra-card-listing obra-card-dest">
                         <div class="obra-card-listing-img">
                             <?php if($tieneImagen): ?>
-                                <img src="<?= htmlspecialchars($imgRelPath) ?>" alt="<?= htmlspecialchars($obra['titulo']) ?>">
+                                <img src="<?= htmlspecialchars($imgRelPath) ?>" alt="<?= htmlspecialchars($obra['titulo']) ?>" loading="lazy" width="800" height="800">
                             <?php else: ?>
                                 <div class="obra-card-no-img">Sin imagen</div>
                             <?php endif; ?>

@@ -329,10 +329,9 @@ header .container {
   align-items: center;
   justify-content: center;
   text-align: center;
-  background-image: url("../../img/mainphoto.png");
+  background-image: url("../../img/mainphoto.webp");
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
   position: relative;
 }
 
@@ -418,13 +417,13 @@ header .container {
 }
 
 .quenecesitas .quenecesitasbot .obrasciviles {
-  background-image: url("../../img/obrasciviles.jpg");
+  background-image: url("../../img/obrasciviles.webp");
   background-size: cover;
   background-position: center;
 }
 
 .quenecesitas .quenecesitasbot .obrasindustriales {
-  background-image: url("../../img/obrasindustriales.jpg");
+  background-image: url("../../img/obrasindustriales.webp");
   background-size: cover;
   background-position: center;
 }
@@ -1213,17 +1212,56 @@ footer {
 }
 
 .footer-social .icon:hover img {
-  filter: brightness(1.5);
+  filter: brightness(1.6);
 }
 
-.footer-social .linkedin:hover {
+.footer-social .linkedin {
   background: #1DA1F2;
   border-color: #1DA1F2;
 }
 
-.footer-social .instagram:hover {
+.footer-social .linkedin:hover {
+  background: #0d8ecf;
+  border-color: #0d8ecf;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(29, 161, 242, 0.45);
+}
+
+.footer-social .instagram {
   background: #E4405F;
   border-color: #E4405F;
+}
+
+.footer-social .instagram:hover {
+  background: #c42d4d;
+  border-color: #c42d4d;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(228, 64, 95, 0.45);
+}
+
+/* ======================== */
+/* WHATSAPP FLOATING BTN    */
+/* ======================== */
+.whatsapp-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  background-color: #25D366;
+  border-radius: 50%;
+  width: 58px;
+  height: 58px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.45);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  text-decoration: none;
+}
+
+.whatsapp-fab:hover {
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 8px 28px rgba(37, 211, 102, 0.6);
 }
 
 .footer-col h4 {
