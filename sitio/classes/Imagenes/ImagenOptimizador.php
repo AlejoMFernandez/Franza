@@ -75,4 +75,64 @@ class ImagenOptimizador {
         imagedestroy($src);
         return $ok ? $nombre : false;
     }
+
+    /**
+     * Crea las versiones livianas (800 y 1600 px, WebP) que usa el sitio público,
+     * en img/opt/<misma ruta>-<ancho>.webp. $rutaRelativa es relativa al sitio,
+     * por ejemplo "img/obrasciviles/mi-obra/foto.webp".
+     */
+    public static function generarVersiones(string $rutaRelativa): void
+    {
+        if (!function_exists('imagewebp') || !str_starts_with($rutaRelativa, 'img/')) {
+            return;
+        }
+        $sitio = realpath(__DIR__ . '/../../');
+        $origen = $sitio . '/' . $rutaRelativa;
+        $info = @getimagesize($origen);
+        if (!$info) {
+            return;
+        }
+        [$ancho, $alto, $tipo] = $info;
+        $src = match($tipo) {
+            IMAGETYPE_JPEG => @imagecreatefromjpeg($origen),
+            IMAGETYPE_PNG  => @imagecreatefrompng($origen),
+            IMAGETYPE_GIF  => @imagecreatefromgif($origen),
+            IMAGETYPE_WEBP => @imagecreatefromwebp($origen),
+            default        => false,
+        };
+        if (!$src) {
+            return;
+        }
+        $sinExt = preg_replace('/\.[a-z0-9]+$/i', '', substr($rutaRelativa, 4));
+        foreach ([800, 1600] as $max) {
+            $escala = min(1, $max / max($ancho, $alto));
+            $w = max(1, (int) round($ancho * $escala));
+            $h = max(1, (int) round($alto * $escala));
+            $dst = imagecreatetruecolor($w, $h);
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $w, $h, $ancho, $alto);
+            $destino = $sitio . '/img/opt/' . $sinExt . '-' . $max . '.webp';
+            if (!is_dir(dirname($destino))) {
+                mkdir(dirname($destino), 0775, true);
+            }
+            imagewebp($dst, $destino, 78);
+            imagedestroy($dst);
+        }
+        imagedestroy($src);
+    }
+
+    /** Borra las versiones livianas de una imagen. */
+    public static function borrarVersiones(string $rutaRelativa): void
+    {
+        if (!str_starts_with($rutaRelativa, 'img/')) {
+            return;
+        }
+        $sitio = realpath(__DIR__ . '/../../');
+        $sinExt = preg_replace('/\.[a-z0-9]+$/i', '', substr($rutaRelativa, 4));
+        foreach ([800, 1600] as $max) {
+            $f = $sitio . '/img/opt/' . $sinExt . '-' . $max . '.webp';
+            if (is_file($f)) {
+                unlink($f);
+            }
+        }
+    }
 }

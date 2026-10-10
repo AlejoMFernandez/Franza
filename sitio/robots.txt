@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /acciones/
+Disallow: /tools/
+
+Sitemap: https://www.franza.com.ar/sitemap.php

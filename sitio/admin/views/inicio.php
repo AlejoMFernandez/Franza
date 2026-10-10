@@ -1,95 +1,84 @@
 <?php
+/**
+ * admin/views/inicio.php — Login del panel de administración.
+ */
 require_once __DIR__ . '/../../bootstrap/init.php';
+require_once __DIR__ . '/../../includes/helpers.php';
 
-// Mensajes de feedback
-$mensajeFeedback = $_SESSION['mensajeFeedback'] ?? null;
-$estado = $_SESSION['estadoFeedback'] ?? 'exito';
+$mensajeFeedback = $mensajeFeedback ?? ($_SESSION['mensajeFeedback'] ?? null);
+$estado = $estado ?? ($_SESSION['estadoFeedback'] ?? 'exito');
 $loginEmail = $_SESSION['login_email'] ?? '';
 unset($_SESSION['mensajeFeedback'], $_SESSION['estadoFeedback'], $_SESSION['login_email']);
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-AR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="../favicon.ico" sizes="any">
-    <link rel="icon" href="../favicon.png">
-    <title>Admin - FRANZA</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <link rel="stylesheet" href="../styles/css/acceder.css">
-    <style>
-        /* Estilos específicos de admin login (si los necesita) */
-    </style>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#141311">
+    <link rel="icon" href="../favicon.ico" sizes="32x32">
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <title>Ingresar · Panel FRANZA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap">
+    <link rel="stylesheet" href="../styles/css/franza.css?v=2">
+    <link rel="stylesheet" href="../styles/css/admin.css?v=2">
 </head>
-<body>
-    <a href="../index.php?seccion=inicio" class="btn-volver">← Volver</a>
-    
-    <?php if($mensajeFeedback): ?>
-        <div class="msj msj-<?= htmlspecialchars($estado, ENT_QUOTES) ?>"><?= $mensajeFeedback;?></div>
-    <?php endif; ?>
-    
-    <section class="login-section">
-        <div class="login-container">
-            <div class="login-logo">
-                <img src="../favicon.png" alt="FRANZA Logo">
+<body class="fz fz-login">
+    <main class="login">
+        <section class="login__foto" aria-hidden="true">
+            <img src="../<?= e(fz_img('img/obrasciviles/restauraci-on-de-fachada/ObraBmeMitre_1771019414.jpg')) ?>" alt="">
+            <div class="login__velo"></div>
+            <div class="login__plano"></div>
+            <div class="login__foto-texto">
+                <span class="fz-mono fz-oro-claro">Panel de obras</span>
+                <p>Cargá una obra y mirala como la va a ver tu cliente, antes de publicarla.</p>
             </div>
-            
-            <h1 class="login-title">Panel de Administración</h1>
-            <p class="login-subtitle">Accede para gestionar las obras</p>
-            
-            <div class="login-box">
-                <form action="acciones/iniciar-sesion.php" method="post" class="login-form">
+        </section>
+
+        <section class="login__panel">
+            <a href="../index.php?seccion=inicio" class="login__volver"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Volver al sitio</a>
+
+            <div class="login__caja">
+                <img src="../img/franza/logo-claro.png" alt="FRANZA Construcciones" class="login__logo" width="220" height="87">
+                <h1 class="login__titulo">Ingresá al panel</h1>
+
+                <?php if ($mensajeFeedback): ?>
+                    <p class="login__msj login__msj--<?= e($estado) ?>" role="alert"><?= strip_tags($mensajeFeedback, '<b>') ?></p>
+                <?php endif; ?>
+
+                <form action="acciones/iniciar-sesion.php" method="post" class="login__form">
                     <?= \App\Seguridad\Csrf::campo() ?>
-                    <div class="form-group">
-                        <label for="email">Correo electrónico</label>
-                        <input 
-                            type="email" 
-                            id="email" 
-                            name="email" 
-                            placeholder="admin@franza.com"
-                            required
-                            autofocus
-                            value="<?= htmlspecialchars($loginEmail, ENT_QUOTES) ?>"
-                        >
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">Contraseña</label>
-                        <div class="password-wrapper">
-                            <input 
-                                type="password" 
-                                id="password" 
-                                name="password" 
-                                placeholder="••••••••"
-                                required
-                            >
-                            <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Mostrar contraseña">
-                                <svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                <svg class="eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    <label class="login__campo">
+                        <span>Email</span>
+                        <input type="email" id="email" name="email" autocomplete="username" required autofocus value="<?= e($loginEmail) ?>">
+                    </label>
+                    <label class="login__campo">
+                        <span>Contraseña</span>
+                        <span class="login__clave">
+                            <input type="password" id="password" name="password" autocomplete="current-password" required>
+                            <button type="button" class="login__ver" data-ver-clave aria-label="Mostrar contraseña" aria-pressed="false">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn-login">Ingresar</button>
+                        </span>
+                    </label>
+                    <button type="submit" class="adm-btn adm-btn--oro login__entrar">Ingresar</button>
                 </form>
-                
-                <div class="login-footer">
-                    <p>¿No tienes cuenta? <a href="index.php?seccion=registrarse">Créala</a></p>
-                </div>
+                <p class="login__ayuda">¿Te olvidaste la contraseña? Pedile a quien administra el sitio que te la restablezca.</p>
             </div>
-        </div>
-    </section>
-    
-    <script src="../js/mensaje.js"></script>
+        </section>
+    </main>
     <script>
-    function togglePassword() {
-        const input = document.getElementById('password');
-        const btn = document.querySelector('.password-toggle');
-        const isHidden = input.type === 'password';
-        input.type = isHidden ? 'text' : 'password';
-        btn.querySelector('.eye-open').style.display = isHidden ? 'none' : 'block';
-        btn.querySelector('.eye-closed').style.display = isHidden ? 'block' : 'none';
-    }
+    document.querySelectorAll('[data-ver-clave]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var i = document.getElementById('password'), ver = i.type === 'password';
+            i.type = ver ? 'text' : 'password';
+            b.setAttribute('aria-pressed', String(ver));
+            b.setAttribute('aria-label', ver ? 'Ocultar contraseña' : 'Mostrar contraseña');
+        });
+    });
     </script>
 </body>
 </html>

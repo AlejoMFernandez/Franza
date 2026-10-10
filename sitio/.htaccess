@@ -67,4 +67,7 @@ ServerSignature Off
     # Proteger carpetas internas
     RewriteRule ^classes/ - [F,L]
     RewriteRule ^bootstrap/ - [F,L]
+    RewriteRule ^includes/ - [F,L]
+    RewriteRule ^data/ - [F,L]
+    RewriteRule ^views/ - [F,L]
 </IfModule>

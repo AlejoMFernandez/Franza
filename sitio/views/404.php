@@ -1,8 +1,9 @@
-<section class="main-section">
-    <div class="container text-center" style="padding: 100px 20px;">
-        <h1 style="font-size: 120px; color: #e74c3c; margin: 0;">404</h1>
-        <h2 style="margin: 20px 0;">Página no encontrada</h2>
-        <p style="margin: 20px 0; color: #666;">Lo sentimos, la página que buscas no existe.</p>
-        <a href="index.php?seccion=inicio" class="btn btn-primary" style="display: inline-block; padding: 10px 30px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;">Volver al inicio</a>
+<?php /** 404.php — Página no encontrada. */ ?>
+<section class="fz-vacia">
+    <div class="fz-wrap">
+        <span class="fz-mono fz-oro">Error 404</span>
+        <h1 class="fz-h1">Esta página no está en los planos.</h1>
+        <p>La dirección no existe o cambió. Podés seguir por las obras.</p>
+        <a class="fz-btn fz-btn--oro" href="index.php?seccion=inicio">Volver al inicio</a>
     </div>
 </section>

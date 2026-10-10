@@ -23,7 +23,7 @@ if(!$autenticacion->estaAutenticado() || $autenticacion->getUsuario()->noEsAdmin
     exit;
 }
 
-$id = $_GET['id'];
+$id = (int) ($_GET['id'] ?? 0);
 $obra = (new Obras)->porId($id);
 
 // Función auxiliar para eliminar un directorio y su contenido.
@@ -53,6 +53,8 @@ try {
         $tipoCarpeta = ($tipo === 'civil') ? 'obrasciviles' : 'obrasindustriales';
         $rutaCarpeta = __DIR__ . '/../../img/' . $tipoCarpeta . '/' . $carpetaObra;
         eliminarDirectorio($rutaCarpeta);
+        // También las versiones livianas que usa el sitio público.
+        eliminarDirectorio(__DIR__ . '/../../img/opt/' . $tipoCarpeta . '/' . $carpetaObra);
     }
 
     // 3. Eliminar la obra de la base de datos.
