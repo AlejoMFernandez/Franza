@@ -1,22 +1,26 @@
 # Publica el sitio en el hosting cada vez que se hace push a main.
-# Sube solo los archivos que cambiaron desde la última vez (por FTP).
+# Sube solo los archivos que cambiaron desde la última vez (por FTP)
+# y al final comprueba que el sitio en internet tenga la versión nueva.
 #
-# Configuración (una sola vez), en GitHub → Settings → Secrets and variables → Actions:
-#   FTP_SERVER    ej: ftp.franza.com.ar
-#   FTP_USERNAME  usuario FTP del hosting
+# Secrets (GitHub → Settings → Secrets and variables → Actions):
+#   FTP_SERVER    IP o nombre del servidor FTP (sin ftp:// ni :21)
+#   FTP_USERNAME  usuario FTP
 #   FTP_PASSWORD  contraseña FTP
-#   FTP_DIR       carpeta del sitio en el hosting, terminada en /  (ej: /public_html/)
+#   FTP_DIR       carpeta del sitio, terminada en /  (ej: public_html/  o  ./)
 
 name: Publicar en el hosting
 
 on:
   push:
     branches: [main]
-  workflow_dispatch: # botón "Run workflow" para publicar a mano
+  workflow_dispatch:
 
 concurrency:
   group: deploy-produccion
   cancel-in-progress: false
+
+env:
+  SITIO_URL: https://www.franza.com.ar
 
 jobs:
   deploy:
@@ -26,8 +30,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Revisar que el PHP no tenga errores
-        run: |
-          find sitio -name "*.php" -print0 | xargs -0 -n1 php -l > /dev/null
+        run: find sitio -name "*.php" -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Marcar la versión que se publica
+        run: echo "${GITHUB_SHA}" > sitio/version.txt
 
       - name: Subir los cambios por FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -37,7 +43,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: ${{ secrets.FTP_DIR }}
           local-dir: ./sitio/
-          # protocol: ftps   # descomentar si el hosting lo pide
+          log-level: verbose
           exclude: |
             **/.git*
             **/.git*/**
@@ -47,3 +53,17 @@ jobs:
             img/obrasindustriales/**
             img/opt/**
             img/tmp/**
+
+      - name: Comprobar que el sitio tiene la versión nueva
+        run: |
+          for i in 1 2 3 4 5 6; do
+            online=$(curl -sL --max-time 20 "${SITIO_URL}/version.txt?nocache=$(date +%s)" | tr -d '[:space:]')
+            if [ "$online" = "${GITHUB_SHA}" ]; then
+              echo "OK: ${SITIO_URL} ya muestra la versión ${GITHUB_SHA}"
+              exit 0
+            fi
+            echo "Todavía no (intento $i). En el sitio hay: '${online:0:60}'"
+            sleep 10
+          done
+          echo "::error::Los archivos se subieron, pero NO a la carpeta que publica ${SITIO_URL}. Revisá FTP_SERVER / FTP_USERNAME / FTP_DIR."
+          exit 1
