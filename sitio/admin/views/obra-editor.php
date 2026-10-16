@@ -23,7 +23,7 @@ $extra = $obra ? fz_extra($obra) : ['rubro' => '', 'etiquetas' => '', 'badge' =>
 if (($extra['rubro'] ?? '') === 'Otras obras') { $extra['rubro'] = ''; }
 $tipo = $obra ? $obra->getTipo() : ($_GET['tipo'] ?? 'civil');
 $tipo = $tipo === 'industrial' ? 'industrial' : 'civil';
-$fotos = $obra ? $obra->getImagenesCarpeta() : [];
+$fotos = $obra ? $obra->getMediosCarpeta() : [];
 $fotos = array_values(array_filter($fotos, fn($f) => !preg_match('/^screenshot/i', $f)));
 $portada = $obra ? $obra->getImagen() : '';
 $rutaBase = $obra ? '../' . $obra->getRutaImagenes() : '';
@@ -41,12 +41,14 @@ $rubros = array_keys($rubros + ['Fachadas' => 1, 'Azoteas y terrazas' => 1, 'Amp
 $accion = 'acciones/obras-guardar.php' . ($obra ? '?id=' . $obra->getObraId() : '');
 $numero = $obra ? str_pad((string) $obra->getObraId(), 3, '0', STR_PAD_LEFT) : 'NUEVA';
 ?>
-<form class="ed" id="ed" action="<?= e($accion) ?>" method="post" enctype="multipart/form-data" data-editor novalidate>
+<form class="ed" id="ed" action="<?= e($accion) ?>" method="post" enctype="multipart/form-data" data-editor novalidate
+      data-obra="<?= $obra ? $obra->getObraId() : 'nueva' ?>" data-max-fotos="<?= Obras::MAX_FOTOS ?>" data-subir-url="acciones/fotos-subir.php"
+      data-max-videos="<?= Obras::MAX_VIDEOS ?>" data-max-video-mb="<?= Obras::MAX_VIDEO_MB ?>" data-max-video-seg="<?= Obras::MAX_VIDEO_SEG ?>" data-video-url="acciones/video-subir.php">
     <?= Csrf::campo() ?>
     <input type="hidden" name="portada" value="<?= $portada ? 'f:' . e($portada) : '' ?>" data-portada-input>
     <input type="hidden" name="orden_fotos" value="" data-orden-input>
     <input type="file" name="fotos_nuevas[]" multiple hidden data-archivos-envio>
-    <input type="file" accept="image/*" multiple hidden data-archivos-elegir>
+    <input type="file" accept="image/*,video/mp4,video/quicktime,video/webm,.mov,.m4v" multiple hidden data-archivos-elegir>
     <div data-eliminar-inputs></div>
 
     <!-- Barra del editor -->
@@ -73,10 +75,10 @@ $numero = $obra ? str_pad((string) $obra->getObraId(), 3, '0', STR_PAD_LEFT) : '
     <?php endif; ?>
 
     <!-- HERO -->
-    <section class="fz-ficha-hero ed-hero">
+    <section class="fz-ficha-hero ed-hero <?= fz_titulo_tamano($obra ? $obra->getTitulo() : '', $obra ? $obra->getUbicacion() : '') ?>" data-hero-editor>
         <img src="<?= $portada ? e($rutaBase . $portada) : '' ?>" alt="" class="fz-ficha-hero__foto" data-hero-foto <?= $portada ? '' : 'hidden' ?>>
         <div class="ed-hero__vacio" data-hero-vacio <?= $portada ? 'hidden' : '' ?>>
-            <span>Todavía no hay portada</span>
+            <span class="ed-hero__vacio-txt"><img src="../img/franza/isotipo.svg" alt="" width="54" height="74"><b>Todavía no hay portada</b><small>Tocá "Subir portada" o agregá fotos abajo y elegí una con la ★</small></span>
         </div>
         <div class="fz-ficha-hero__velo" aria-hidden="true"></div>
         <button type="button" class="adm-btn adm-btn--linea adm-btn--chico ed-hero__cambiar ed-control" data-subir-portada>
@@ -100,6 +102,7 @@ $numero = $obra ? str_pad((string) $obra->getObraId(), 3, '0', STR_PAD_LEFT) : '
                 </div>
                 <span class="fz-ficha-hero__num" aria-hidden="true"><?= e($numero) ?></span>
             </div>
+            <p class="ed-tamano ed-control" data-tamano-aviso aria-live="polite"></p>
             <label class="ed-badge ed-campo-envoltura">
                 <span class="ed-ayuda">Etiqueta destacada (opcional)</span>
                 <input type="text" name="badge" class="ed-campo fz-card__badge" maxlength="60" placeholder="Ej: Antes / después" value="<?= e($extra['badge']) ?>" data-espejo="badge" data-ancho-auto list="ed-badges">
@@ -168,15 +171,32 @@ $numero = $obra ? str_pad((string) $obra->getObraId(), 3, '0', STR_PAD_LEFT) : '
         <div class="fz-wrap">
             <div class="fz-seccion-head">
                 <h2 class="fz-h2">Todas las fotos</h2>
-                <span class="fz-mono fz-gris ed-control">Arrastrá para ordenar · <b class="fz-oro-osc">★</b> = portada</span>
+                <div class="ed-fotos-info ed-control">
+                    <span class="ed-contador" data-contador-fotos></span>
+                    <span class="fz-mono fz-gris">Arrastrá para ordenar · <b class="fz-oro-osc">★</b> = portada</span>
+                </div>
+            </div>
+            <div class="ed-borrador ed-control" data-borrador hidden>
+                <span data-borrador-texto></span>
+                <button type="button" class="adm-btn adm-btn--oro adm-btn--chico" data-borrador-recuperar>Recuperar</button>
+                <button type="button" class="adm-btn adm-btn--linea-osc adm-btn--chico" data-borrador-descartar>Descartar</button>
             </div>
             <div class="fz-galeria__grid ed-galeria__grid" data-galeria-editor>
-                <?php foreach ($fotos as $f): ?>
-                    <div class="fz-galeria__item ed-foto<?= $f === $portada ? ' es-portada' : '' ?>" draggable="true" data-token="f:<?= e($f) ?>" data-archivo="<?= e($f) ?>">
-                        <img src="<?= e('../' . fz_img($obra->getRutaImagenes() . $f, 800)) ?>" alt="" draggable="false">
+                <?php foreach ($fotos as $f):
+                    $esVideo = Obras::esVideo($f); $rutaF = $obra->getRutaImagenes() . $f;
+                    $poster = $esVideo ? fz_poster($rutaF) : '';
+                    [$pw, $ph] = $poster ? (@getimagesize(__DIR__ . '/../../' . $poster) ?: [0, 0]) : [0, 0];
+                ?>
+                    <div class="fz-galeria__item ed-foto<?= $esVideo ? ' es-video' : '' ?><?= $pw && $ph > $pw * 1.05 ? ' es-vertical' : '' ?><?= $f === $portada ? ' es-portada' : '' ?>" draggable="true" data-token="f:<?= e($f) ?>" data-archivo="<?= e($f) ?>">
+                        <?php if ($esVideo): ?>
+                            <?php if ($poster): ?><img src="<?= e('../' . $poster) ?>" alt="" draggable="false"><?php else: ?><video src="<?= e('../' . $rutaF) ?>#t=1" muted preload="metadata" playsinline></video><?php endif; ?>
+                            <span class="ed-foto__video" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+                        <?php else: ?>
+                            <img src="<?= e('../' . fz_img($rutaF, 800)) ?>" alt="" draggable="false">
+                        <?php endif; ?>
                         <div class="ed-foto__acciones ed-control">
-                            <button type="button" class="ed-foto__btn" data-hacer-portada aria-label="Usar como portada" title="Usar como portada">★</button>
-                            <button type="button" class="ed-foto__btn" data-borrar-foto aria-label="Eliminar foto" title="Eliminar foto">×</button>
+                            <?php if (!$esVideo): ?><button type="button" class="ed-foto__btn" data-hacer-portada aria-label="Usar como portada" title="Usar como portada">★</button><?php endif; ?>
+                            <button type="button" class="ed-foto__btn" data-borrar-foto aria-label="Eliminar <?= $esVideo ? 'video' : 'foto' ?>" title="Eliminar <?= $esVideo ? 'video' : 'foto' ?>">×</button>
                         </div>
                         <span class="ed-foto__tag">Portada</span>
                         <div class="ed-foto__borrada"><span>Se elimina al guardar</span><button type="button" class="adm-btn adm-btn--linea adm-btn--chico" data-deshacer-foto>Deshacer</button></div>
@@ -184,8 +204,8 @@ $numero = $obra ? str_pad((string) $obra->getObraId(), 3, '0', STR_PAD_LEFT) : '
                 <?php endforeach; ?>
                 <button type="button" class="ed-agregar ed-control" data-agregar-fotos>
                     <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                    <span>Agregar fotos</span>
-                    <small>Tocá o arrastrá fotos acá</small>
+                    <span data-agregar-texto>Agregar fotos o videos</span>
+                    <small>Tocá o arrastrá acá. Las fotos se achican solas. Videos: hasta <?= Obras::MAX_VIDEOS ?> por obra, <?= Obras::MAX_VIDEO_SEG ?> segundos y <?= Obras::MAX_VIDEO_MB ?> MB.</small>
                 </button>
             </div>
         </div>
@@ -197,6 +217,13 @@ $numero = $obra ? str_pad((string) $obra->getObraId(), 3, '0', STR_PAD_LEFT) : '
             <div>
                 <span class="fz-mono fz-gris">Así se ve en el listado de obras</span>
                 <p class="ed-listado__texto">Las etiquetas son 3 o 4 trabajos cortos, separados por puntos. Ayudan a entender la obra de un vistazo.</p>
+                <?php if (Migracion::tieneSlug()): ?>
+                    <label class="ed-slug">
+                        <span class="fz-mono fz-gris">Dirección de la obra</span>
+                        <span class="ed-slug__campo"><span class="ed-slug__base"><?= e(preg_replace('#^https?://#', '', fz_url_absoluta('obra/'))) ?></span><input type="text" name="slug" value="<?= e($obra ? $obra->getSlug() : '') ?>" maxlength="80" pattern="[a-z0-9-]*" spellcheck="false" autocomplete="off" data-slug data-slug-auto="<?= $obra && $obra->getSlug() !== '' ? '0' : '1' ?>" aria-label="Dirección de la obra" placeholder="se-arma-sola-con-el-titulo"></span>
+                        <small>Se arma sola con el título. Si la cambiás después de compartirla, el link viejo deja de funcionar.</small>
+                    </label>
+                <?php endif; ?>
             </div>
             <div class="fz-card ed-card">
                 <span class="fz-card__foto">

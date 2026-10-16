@@ -3,7 +3,7 @@
 # -----------------------------------------------
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /Franza/sitio/admin/
+    RewriteRule ^ - [E=FZ_URLS:1]
 
     # Si el archivo o directorio existe, servirlo directamente
     RewriteCond %{REQUEST_FILENAME} -f [OR]

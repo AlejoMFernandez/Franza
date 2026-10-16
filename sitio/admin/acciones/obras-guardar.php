@@ -15,10 +15,11 @@ require_once __DIR__ . '/../../bootstrap/init.php';
 
 $obraId = (int) ($_GET['id'] ?? 0);
 $volver = '../index.php?seccion=' . ($obraId ? 'obras-editar&id=' . $obraId : 'obras-agregar');
+$sobrantes = 0;
 
 // Si el envío superó el límite del servidor, PHP descarta todo el formulario.
 if (empty($_POST) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
-    $_SESSION['mensajeFeedback'] = 'Las fotos pesaban demasiado para enviarlas juntas. Probá subir menos fotos por vez.';
+    $_SESSION['mensajeFeedback'] = 'El envío superó el límite del servidor. Tus fotos ya subidas quedaron guardadas como borrador: tocá "Recuperar" en el editor.';
     $_SESSION['estadoFeedback'] = 'error';
     header('Location: ' . $volver);
     exit;
@@ -160,11 +161,40 @@ if (!empty($_FILES['fotos_nuevas']['name']) && is_array($_FILES['fotos_nuevas'][
     }
 }
 
-// 4. Orden de la galería y portada ("f:archivo" existente, "n:3" foto nueva nro 3).
-$resolver = function (string $token) use ($nuevas, $rutaAbs): ?string {
+// 3b. Fotos que ya se subieron una por una desde el editor (están en img/tmp/).
+$dirTmp = $sitio . '/img/tmp/';
+$movidas = [];
+$moverTmp = function (string $archivo) use (&$movidas, $dirTmp, $rutaAbs, $rutaRel, $sitio): ?string {
+    $archivo = basename($archivo);
+    if (isset($movidas[$archivo])) return $movidas[$archivo];
+    if ($archivo === '' || !is_file($dirTmp . $archivo)) return null;
+    $destino = $archivo;
+    while (is_file($rutaAbs . $destino)) {
+        $destino = pathinfo($archivo, PATHINFO_FILENAME) . '_' . mt_rand(10, 99) . '.' . pathinfo($archivo, PATHINFO_EXTENSION);
+    }
+    if (!rename($dirTmp . $archivo, $rutaAbs . $destino)) return null;
+    if (Obras::esVideo($destino)) {
+        // La vista previa del video va con las versiones livianas: img/opt/.../<video>-poster.jpg
+        $poster = $dirTmp . pathinfo($archivo, PATHINFO_FILENAME) . '-poster.jpg';
+        if (is_file($poster)) {
+            $dest = $sitio . '/img/opt/' . substr($rutaRel, 4) . pathinfo($destino, PATHINFO_FILENAME) . '-poster.jpg';
+            if (!is_dir(dirname($dest))) mkdir(dirname($dest), 0775, true);
+            rename($poster, $dest);
+        }
+    } else {
+        ImagenOptimizador::generarVersiones($rutaRel . $destino);
+    }
+    return $movidas[$archivo] = $destino;
+};
+
+// 4. Orden de la galería y portada ("f:archivo" existente, "t:archivo" subida al editor, "n:3" foto nueva nro 3).
+$resolver = function (string $token) use ($nuevas, $rutaAbs, $moverTmp): ?string {
     if (str_starts_with($token, 'f:')) {
         $a = basename(substr($token, 2));
         return is_file($rutaAbs . $a) ? $a : null;
+    }
+    if (str_starts_with($token, 't:')) {
+        return $moverTmp(substr($token, 2));
     }
     if (str_starts_with($token, 'n:')) {
         return $nuevas[(int) substr($token, 2)] ?? null;
@@ -179,13 +209,29 @@ foreach ((array) json_decode((string) ($_POST['orden_fotos'] ?? '[]'), true) as 
 foreach ($nuevas as $a) {
     if (!in_array($a, $orden, true)) $orden[] = $a;
 }
+// Topes por obra (fotos y videos): lo que sobra y es nuevo no se guarda.
+$sobrantes = 0;
+$cuenta = ['foto' => 0, 'video' => 0];
+$tope = ['foto' => Obras::MAX_FOTOS, 'video' => Obras::MAX_VIDEOS];
+$orden = array_values(array_filter($orden, function ($a) use (&$cuenta, $tope, &$sobrantes, $nuevas, $movidas, $rutaAbs, $rutaRel) {
+    $clase = Obras::esVideo($a) ? 'video' : 'foto';
+    if (++$cuenta[$clase] <= $tope[$clase]) return true;
+    if (in_array($a, $nuevas, true) || in_array($a, $movidas, true)) {
+        @unlink($rutaAbs . $a);
+        ImagenOptimizador::borrarVersiones($rutaRel . $a);
+        $sobrantes++;
+        return false;
+    }
+    return true;
+}));
 
 $imagen = $resolver((string) ($_POST['portada'] ?? '')) ?? '';
+if ($imagen !== '' && Obras::esVideo($imagen)) $imagen = '';
 if ($imagen === '' && $obra && $obra->getImagen() && is_file($rutaAbs . $obra->getImagen())) {
     $imagen = $obra->getImagen();
 }
 if ($imagen === '') {
-    $imagen = $orden[0] ?? '';
+    $imagen = array_values(array_filter($orden, fn($a) => !Obras::esVideo($a)))[0] ?? '';
 }
 
 $datos = [
@@ -204,6 +250,8 @@ $datos = [
     'anio'        => $texto('anio', 10) ?: null,
     'destacada'   => !empty($_POST['destacada']) ? 1 : 0,
     'fotos_orden' => json_encode(array_values($orden), JSON_UNESCAPED_UNICODE),
+    // Dirección linda: la que escribió el admin, o la del título; siempre única.
+    'slug'        => $modelo->slugUnico(trim((string) ($_POST['slug'] ?? '')) ?: ($obra && $obra->getSlug() !== '' ? $obra->getSlug() : $titulo), $obra ? $obra->getObraId() : 0),
 ];
 
 try {
@@ -215,11 +263,14 @@ try {
         $id = $modelo->crear($datos + ['usuario_fk' => $autenticacion->getUsuarioId()]);
         $msj = 'La obra se publicó en el sitio.';
     }
+    if ($sobrantes) {
+        $msj .= " $sobrantes archivo(s) no se guardaron porque cada obra admite hasta " . Obras::MAX_FOTOS . ' fotos y ' . Obras::MAX_VIDEOS . ' videos.';
+    }
     if ($fallidas) {
         $msj .= " $fallidas foto(s) no se pudieron subir (formato no válido o demasiado pesadas).";
     }
     $_SESSION['mensajeFeedback'] = $msj;
-    $_SESSION['estadoFeedback'] = $fallidas ? 'error' : 'exito';
+    $_SESSION['estadoFeedback'] = ($fallidas || $sobrantes) ? 'error' : 'exito';
     header('Location: ../index.php?seccion=obras-editar&id=' . $id);
     exit;
 } catch (\Throwable $th) {

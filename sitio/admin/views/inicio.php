@@ -49,7 +49,7 @@ unset($_SESSION['mensajeFeedback'], $_SESSION['estadoFeedback'], $_SESSION['logi
                     <p class="login__msj login__msj--<?= e($estado) ?>" role="alert"><?= strip_tags($mensajeFeedback, '<b>') ?></p>
                 <?php endif; ?>
 
-                <form action="acciones/iniciar-sesion.php" method="post" class="login__form">
+                <form action="acciones/iniciar-sesion.php" method="post" class="login__form" data-cargando="Ingresando…">
                     <?= \App\Seguridad\Csrf::campo() ?>
                     <label class="login__campo">
                         <span>Email</span>

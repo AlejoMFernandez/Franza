@@ -26,6 +26,7 @@ class Migracion
         'destacada'   => 'TINYINT(1) NOT NULL DEFAULT 0',
         'orden'       => 'INT NOT NULL DEFAULT 0',
         'fotos_orden' => 'TEXT NULL',
+        'slug'        => 'VARCHAR(160) NULL',
     ];
 
     /** Textos originales de las obras cargadas, para reparar tildes rotas. */
@@ -47,6 +48,22 @@ class Migracion
     ];
 
     private static ?bool $actualizada = null;
+    private static ?bool $tieneSlug = null;
+
+    /** ¿Ya existe el campo slug (direcciones lindas de las obras)? */
+    public static function tieneSlug(): bool
+    {
+        if (self::$tieneSlug === null) {
+            self::$tieneSlug = self::tieneColumna('slug');
+        }
+        return self::$tieneSlug;
+    }
+
+    /** ¿Está todo actualizado (campos del rediseño y direcciones lindas)? */
+    public static function completa(): bool
+    {
+        return self::actualizada() && self::tieneSlug();
+    }
 
     /** ¿La tabla obras ya tiene los campos nuevos? */
     public static function actualizada(): bool
@@ -94,6 +111,7 @@ class Migracion
             }
         }
         self::$actualizada = true;
+        self::$tieneSlug = true;
 
         // Reparar tildes rotas y cargar datos extra iniciales.
         $filas = $db->query("SELECT obra_id, carpeta, titulo, ubicacion, explicacion, rubro, orden FROM obras ORDER BY obra_id")->fetchAll(PDO::FETCH_ASSOC);
@@ -142,6 +160,15 @@ class Migracion
             if ((int) $f['orden'] === 0) {
                 $db->prepare("UPDATE obras SET orden = ? WHERE obra_id = ?")->execute([$i, $id]);
             }
+        }
+        // Direcciones lindas: cada obra recibe su slug a partir del título (si no tiene).
+        $modelo = new \App\Modelos\Obras();
+        $sinSlug = $db->query("SELECT obra_id, titulo FROM obras WHERE slug IS NULL OR slug = '' ORDER BY obra_id")->fetchAll(PDO::FETCH_ASSOC);
+        $updSlug = $db->prepare("UPDATE obras SET slug = ? WHERE obra_id = ?");
+        foreach ($sinSlug as $f) {
+            $slug = $modelo->slugUnico(\App\Modelos\Obras::slugDesde($f['titulo']), (int) $f['obra_id']);
+            $updSlug->execute([$slug, (int) $f['obra_id']]);
+            $log[] = 'Obra ' . $f['obra_id'] . ': dirección /obra/' . $slug;
         }
         return $log;
     }

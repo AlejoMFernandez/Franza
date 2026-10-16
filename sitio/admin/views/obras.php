@@ -28,8 +28,14 @@ $puedeOrdenar = Migracion::actualizada();
 
     <?php if (!$obras): ?>
         <div class="adm-vacio">
+            <span class="adm-vacio__icono" aria-hidden="true"><img src="../img/franza/isotipo.svg" alt="" width="64" height="88"></span>
             <h2>Todavía no hay obras</h2>
-            <p>Cargá la primera: vas a poder armarla viendo cómo queda en el sitio.</p>
+            <p>Cargá la primera: la armás viendo cómo va a quedar en el sitio.</p>
+            <ol class="adm-vacio__pasos">
+                <li><b>1</b> Subí las fotos y elegí la portada</li>
+                <li><b>2</b> Escribí el título, el lugar y qué se hizo</li>
+                <li><b>3</b> Tocá "Publicar obra"</li>
+            </ol>
             <a href="index.php?seccion=obras-agregar" class="adm-btn adm-btn--oro">Cargar la primera obra</a>
         </div>
     <?php else: ?>
@@ -55,14 +61,14 @@ $puedeOrdenar = Migracion::actualizada();
             <?php foreach ($obras as $o):
                 $extra = fz_extra($o);
                 $fotos = count(fz_galeria($o));
-                $portada = $o->getImagen() ? '../' . fz_img(fz_portada($o), 800) : '';
+                $sinPortada = fz_sin_portada($o);
+                $portada = '../' . fz_img(fz_portada($o), 800);
             ?>
                 <li class="adm-card" data-id="<?= $o->getObraId() ?>" data-tipo="<?= e($o->getTipo()) ?>" data-texto="<?= e(mb_strtolower($o->getTitulo() . ' ' . $o->getUbicacion())) ?>" <?= $puedeOrdenar ? 'draggable="true"' : '' ?>>
                     <div class="adm-card__foto">
-                        <?php if ($portada): ?>
-                            <img src="<?= e($portada) ?>" alt="" loading="lazy" draggable="false">
-                        <?php else: ?>
-                            <span class="adm-card__sinfoto">Sin portada</span>
+                        <img src="<?= e($portada) ?>" alt="" loading="lazy" draggable="false">
+                        <?php if ($sinPortada): ?>
+                            <span class="adm-card__sinfoto">Sin fotos todavía</span>
                         <?php endif; ?>
                         <span class="adm-card__num"><?= e(fz_num($o->getObraId())) ?></span>
                         <?php if ($puedeOrdenar): ?>
@@ -87,7 +93,15 @@ $puedeOrdenar = Migracion::actualizada();
                 </li>
             <?php endforeach; ?>
         </ol>
-        <p class="adm-vacio-filtro" data-sin-resultados hidden>No hay obras que coincidan con la búsqueda.</p>
+        <div class="adm-vacio adm-vacio--filtro" data-sin-resultados hidden>
+            <span class="adm-vacio__icono" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M8.5 8.5l5 5M13.5 8.5l-5 5"/></svg></span>
+            <h2 data-sin-titulo>Ninguna obra coincide</h2>
+            <p data-sin-texto>Probá con otra palabra o mirá todas las obras.</p>
+            <div class="adm-vacio__acciones">
+                <button type="button" class="adm-btn adm-btn--linea-osc" data-limpiar-filtros>Ver todas las obras</button>
+                <a href="index.php?seccion=obras-agregar" class="adm-btn adm-btn--oro" data-cargar-tipo>Cargar una obra nueva</a>
+            </div>
+        </div>
     <?php endif; ?>
 </main>
 

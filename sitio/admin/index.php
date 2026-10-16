@@ -54,7 +54,7 @@ if ($seccion === 'inicio' || $seccion === 'registrarse') {
 $vista = $rutaOpciones['vista'] ?? $seccion;
 $esEditor = ($vista === 'obra-editor');
 $usuario = $autenticacion->getUsuario();
-$version = '2';
+$version = '7';
 ?>
 <!DOCTYPE html>
 <html lang="es-AR">
@@ -84,7 +84,7 @@ $version = '2';
         </nav>
         <div class="adm-top__user">
             <span class="adm-top__mail"><?= e($usuario->getUsuarioEmail()) ?></span>
-            <form action="acciones/cerrar-sesion.php" method="post">
+            <form action="acciones/cerrar-sesion.php" method="post" data-cargando="Saliendo…">
                 <?= \App\Seguridad\Csrf::campo() ?>
                 <button type="submit" class="adm-btn adm-btn--linea adm-btn--chico">Cerrar sesión</button>
             </form>
@@ -93,11 +93,11 @@ $version = '2';
 </header>
 <?php endif; ?>
 
-<?php if (!Migracion::actualizada()): ?>
+<?php if (!Migracion::completa()): ?>
     <div class="adm-aviso">
         <div class="adm-aviso__inner">
             <p><b>Falta un paso:</b> actualizá la base de datos para usar el panel nuevo (rubros, pasos, destacadas, orden y arreglo de tildes). Se hace una sola vez y no borra nada.</p>
-            <form action="acciones/migrar.php" method="post">
+            <form action="acciones/migrar.php" method="post" data-cargando="Actualizando…">
                 <?= \App\Seguridad\Csrf::campo() ?>
                 <button type="submit" class="adm-btn adm-btn--oro">Actualizar ahora</button>
             </form>

@@ -11,11 +11,11 @@ header('Content-Type: application/xml; charset=utf-8');
 
 $urls = [
     ['loc' => fz_url_absoluta(''), 'prioridad' => '1.0'],
-    ['loc' => fz_url_absoluta('index.php?seccion=obrasciviles'), 'prioridad' => '0.8'],
-    ['loc' => fz_url_absoluta('index.php?seccion=obrasindustriales'), 'prioridad' => '0.8'],
+    ['loc' => fz_url_absoluta(fz_url('obrasciviles')), 'prioridad' => '0.8'],
+    ['loc' => fz_url_absoluta(fz_url('obrasindustriales')), 'prioridad' => '0.8'],
 ];
 foreach ((new Obras())->todas() as $obra) {
-    $urls[] = ['loc' => fz_url_absoluta(fz_url_obra($obra->getObraId())), 'prioridad' => '0.6'];
+    $urls[] = ['loc' => fz_url_absoluta(fz_url_obra($obra)), 'prioridad' => '0.6'];
 }
 
 echo '<?xml version="1.0" encoding="UTF-8"?>', "\n";

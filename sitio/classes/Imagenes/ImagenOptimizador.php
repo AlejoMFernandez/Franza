@@ -128,8 +128,8 @@ class ImagenOptimizador {
         }
         $sitio = realpath(__DIR__ . '/../../');
         $sinExt = preg_replace('/\.[a-z0-9]+$/i', '', substr($rutaRelativa, 4));
-        foreach ([800, 1600] as $max) {
-            $f = $sitio . '/img/opt/' . $sinExt . '-' . $max . '.webp';
+        foreach (['-800.webp', '-1600.webp', '-poster.jpg'] as $sufijo) {
+            $f = $sitio . '/img/opt/' . $sinExt . $sufijo;
             if (is_file($f)) {
                 unlink($f);
             }

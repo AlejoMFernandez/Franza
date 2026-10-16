@@ -49,25 +49,32 @@ ServerSignature Off
 # -----------------------------------------------
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /Franza/sitio/
+    # Sin RewriteBase: funciona igual en el hosting (raíz) y en la compu (subcarpeta).
+
+    # Le avisa a PHP que las direcciones lindas están activas.
+    RewriteRule ^ - [E=FZ_URLS:1]
+
+    # Proteger carpetas internas
+    RewriteRule ^(classes|bootstrap|includes|data|views|tools)/ - [F,L]
 
     # Si el archivo o directorio existe, servirlo directamente
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # URLs amigables del sitio público
+    # Direcciones lindas del sitio público
+    RewriteRule ^obras/civiles/?$ index.php?seccion=obrasciviles [L,QSA]
+    RewriteRule ^obras/industriales/?$ index.php?seccion=obrasindustriales [L,QSA]
+    RewriteRule ^obra/([0-9]+)/?$ index.php?seccion=obra-ver&id=$1 [L,QSA]
+    RewriteRule ^obra/([a-z0-9-]+)/?$ index.php?seccion=obra-ver&slug=$1 [L,QSA]
+
+    # Direcciones viejas que pudieron quedar compartidas
     RewriteRule ^inicio/?$ index.php?seccion=inicio [L,QSA]
     RewriteRule ^obras-civiles/?$ index.php?seccion=obrasciviles [L,QSA]
     RewriteRule ^obras-industriales/?$ index.php?seccion=obrasindustriales [L,QSA]
-    RewriteRule ^obra/([0-9]+)/?$ index.php?seccion=obra-ver&id=$1 [L,QSA]
     RewriteRule ^iniciar-sesion/?$ index.php?seccion=iniciar-sesion [L,QSA]
-    RewriteRule ^registrarse/?$ index.php?seccion=registrarse [L,QSA]
 
-    # Proteger carpetas internas
-    RewriteRule ^classes/ - [F,L]
-    RewriteRule ^bootstrap/ - [F,L]
-    RewriteRule ^includes/ - [F,L]
-    RewriteRule ^data/ - [F,L]
-    RewriteRule ^views/ - [F,L]
+    # Cualquier otra página inexistente: 404 del sitio (las imágenes o archivos que faltan, 404 común)
+    RewriteCond %{REQUEST_URI} !\.(webp|jpe?g|png|gif|svg|ico|css|js|mp4|webm|mov|m4v|txt|xml|json|map|woff2?)$ [NC]
+    RewriteRule ^ index.php?seccion=404 [L,QSA]
 </IfModule>

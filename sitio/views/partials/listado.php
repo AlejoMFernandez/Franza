@@ -23,7 +23,7 @@ $pad = fn(int $n) => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
     <div class="fz-wrap">
         <div class="fz-listado-head__top">
             <div>
-                <nav class="fz-ruta" aria-label="Ruta"><a href="index.php?seccion=inicio">Inicio</a><span>/</span><span aria-current="page">Obras</span></nav>
+                <nav class="fz-ruta" aria-label="Ruta"><a href="<?= e(fz_url('inicio')) ?>">Inicio</a><span>/</span><span aria-current="page">Obras</span></nav>
                 <h1 class="fz-h1"><?= $esCivil ? 'Obras civiles' : 'Obras industriales' ?></h1>
             </div>
             <p class="fz-listado-head__texto">
@@ -33,8 +33,8 @@ $pad = fn(int $n) => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
             </p>
         </div>
         <nav class="fz-tipos" aria-label="Tipo de obra">
-            <a href="index.php?seccion=obrasciviles" <?= $esCivil ? 'aria-current="page"' : '' ?>>Obras civiles <span class="fz-mono"><?= $pad($cantCiviles) ?></span></a>
-            <a href="index.php?seccion=obrasindustriales" <?= !$esCivil ? 'aria-current="page"' : '' ?>>Obras industriales <span class="fz-mono"><?= $pad($cantIndustriales) ?></span></a>
+            <a href="<?= e(fz_url('obrasciviles')) ?>" <?= $esCivil ? 'aria-current="page"' : '' ?>>Obras civiles <span class="fz-mono"><?= $pad($cantCiviles) ?></span></a>
+            <a href="<?= e(fz_url('obrasindustriales')) ?>" <?= !$esCivil ? 'aria-current="page"' : '' ?>>Obras industriales <span class="fz-mono"><?= $pad($cantIndustriales) ?></span></a>
         </nav>
     </div>
 </section>
@@ -67,14 +67,23 @@ $pad = fn(int $n) => str_pad((string) $n, 2, '0', STR_PAD_LEFT);
                 </a>
             <?php endforeach; ?>
 
-            <?php if (!$esCivil && count($obras) < 3): ?>
+            <?php if (!$obras): ?>
+                <?= fz_vacio(
+                    $esCivil ? 'Obras civiles' : 'Plantas · depósitos · naves',
+                    $esCivil ? 'Estamos subiendo nuestras obras civiles.' : 'Estamos subiendo nuestras obras industriales.',
+                    'Mientras tanto, mirá el resto de los trabajos o contanos qué necesitás: te respondemos por WhatsApp.',
+                    [
+                        ['texto' => 'Pedir presupuesto', 'href' => fz_whatsapp($esCivil ? '¡Hola! Quiero consultar por una obra.' : '¡Hola! Quiero consultar por una obra industrial.'), 'estilo' => 'oro', 'externo' => true],
+                        ['texto' => $esCivil ? 'Ver obras industriales' : 'Ver obras civiles', 'href' => fz_url($esCivil ? 'obrasindustriales' : 'obrasciviles'), 'estilo' => 'linea-osc'],
+                    ],
+                    'fz-vacio-bloque--grilla'
+                ) ?>
+            <?php elseif (!$esCivil && count($obras) < 3): ?>
                 <div class="fz-invita<?= count($obras) === 0 ? ' fz-invita--sola' : '' ?>">
                     <span class="fz-mono fz-oro-claro">Plantas · depósitos · naves</span>
                     <span class="fz-invita__titulo"><?= count($obras) === 0 ? 'Estamos cargando nuestras obras industriales.' : '¿Tu planta necesita una obra?' ?> Contanos qué hay que hacer.</span>
                     <a href="<?= e(fz_whatsapp('¡Hola! Quiero consultar por una obra industrial.')) ?>" class="fz-btn fz-btn--oro" target="_blank" rel="noopener">Pedir presupuesto</a>
                 </div>
-            <?php elseif (!$obras): ?>
-                <p class="fz-vacio">Todavía no hay obras cargadas en esta categoría.</p>
             <?php endif; ?>
         </div>
     </div>

@@ -14,6 +14,21 @@ use PDO;
 
 class Obras
 {
+    /** Cantidad máxima de fotos por obra (el panel lo muestra y el guardado lo respeta). */
+    public const MAX_FOTOS = 60;
+
+    /** Videos por obra: cantidad, peso y duración máximos (la duración la controla el panel). */
+    public const MAX_VIDEOS = 3;
+    public const MAX_VIDEO_MB = 150;
+    public const MAX_VIDEO_SEG = 90;
+    public const EXT_VIDEO = ['mp4', 'webm', 'mov', 'm4v'];
+    public const EXT_IMAGEN = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+    public static function esVideo(string $archivo): bool
+    {
+        return in_array(strtolower(pathinfo($archivo, PATHINFO_EXTENSION)), self::EXT_VIDEO, true);
+    }
+
     private int $obra_id = 0;
     private ?int $usuario_fk = null;
     private string $carpeta = "";
@@ -34,6 +49,7 @@ class Obras
     private $destacada = 0;
     private $orden = 0;
     private ?string $fotos_orden = null;
+    private ?string $slug = null;
 
     /** Orden de los listados: manual primero, después por id. */
     private static function orderBy(): string
@@ -67,6 +83,52 @@ class Obras
         $stmt->setFetchMode(PDO::FETCH_CLASS, self::class);
         $obra = $stmt->fetch();
         return $obra ?: null;
+    }
+
+    /** Busca una obra por su dirección linda (/obra/<slug>). */
+    public function porSlug(string $slug): ?self
+    {
+        if (!Migracion::tieneSlug() || $slug === '') {
+            return null;
+        }
+        $stmt = DBConexion::getConexion()->prepare("SELECT * FROM obras WHERE slug = ?");
+        $stmt->execute([$slug]);
+        $stmt->setFetchMode(PDO::FETCH_CLASS, self::class);
+        $obra = $stmt->fetch();
+        return $obra ?: null;
+    }
+
+    /** Arma un slug prolijo a partir de un texto: "Restauración de fachada" → "restauracion-de-fachada". */
+    public static function slugDesde(string $texto): string
+    {
+        $t = mb_strtolower(trim($texto), 'UTF-8');
+        $t = strtr($t, ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n', 'à' => 'a', 'è' => 'e', 'ì' => 'i', 'ò' => 'o', 'ù' => 'u', 'ç' => 'c']);
+        $t = preg_replace('/[^a-z0-9]+/', '-', $t);
+        $t = trim(preg_replace('/-+/', '-', $t), '-');
+        if (strlen($t) > 80) {
+            $t = rtrim(substr($t, 0, 80), '-');
+            $t = substr($t, 0, strrpos($t, '-') ?: 80);
+        }
+        return $t !== '' ? $t : 'obra';
+    }
+
+    /** Devuelve el slug libre más parecido (agrega -2, -3… si ya lo usa otra obra). */
+    public function slugUnico(string $base, int $excepto = 0): string
+    {
+        $base = self::slugDesde($base);
+        if (!Migracion::tieneSlug()) {
+            return $base;
+        }
+        $stmt = DBConexion::getConexion()->prepare("SELECT COUNT(*) FROM obras WHERE slug = ? AND obra_id <> ?");
+        $slug = $base;
+        $n = 2;
+        while (true) {
+            $stmt->execute([$slug, $excepto]);
+            if ((int) $stmt->fetchColumn() === 0) {
+                return $slug;
+            }
+            $slug = $base . '-' . $n++;
+        }
     }
 
     public function porTipo(string $tipo): array
@@ -110,6 +172,9 @@ class Obras
         $campos = ['usuario_fk', 'carpeta', 'titulo', 'ubicacion', 'explicacion', 'tipo', 'imagen'];
         if (Migracion::actualizada()) {
             $campos = array_merge($campos, Migracion::CAMPOS_EXTRA);
+            if (Migracion::tieneSlug()) {
+                $campos[] = 'slug';
+            }
             if (!isset($data['orden'])) {
                 $max = $db->query("SELECT COALESCE(MAX(orden), 0) AS m FROM obras")->fetch(PDO::FETCH_ASSOC);
                 $data['orden'] = (int) ($max['m'] ?? 0) + 1;
@@ -131,6 +196,9 @@ class Obras
         $campos = ['carpeta', 'titulo', 'ubicacion', 'explicacion', 'tipo', 'imagen'];
         if (Migracion::actualizada()) {
             $campos = array_merge($campos, array_values(array_diff(Migracion::CAMPOS_EXTRA, ['orden'])));
+            if (Migracion::tieneSlug()) {
+                $campos[] = 'slug';
+            }
         }
         $sets = [];
         $valores = ['id' => $id];
@@ -211,6 +279,7 @@ class Obras
     public function getAnio(): string { return (string) $this->anio; }
     public function esDestacada(): bool { return (int) $this->destacada === 1; }
     public function getOrden(): int { return (int) $this->orden; }
+    public function getSlug(): string { return (string) $this->slug; }
 
     /** Pasos de "lo que hicimos" como lista (se guardan uno por línea). */
     public function getPasos(): array
@@ -248,29 +317,41 @@ class Obras
      */
     public function getImagenesCarpeta(): array
     {
+        return array_values(array_filter($this->getMediosCarpeta(), fn($a) => !self::esVideo($a)));
+    }
+
+    /** Videos de la carpeta de la obra, en el orden guardado. */
+    public function getVideosCarpeta(): array
+    {
+        return array_values(array_filter($this->getMediosCarpeta(), fn($a) => self::esVideo($a)));
+    }
+
+    /** Fotos y videos de la carpeta de la obra, en el orden guardado desde el panel. */
+    public function getMediosCarpeta(): array
+    {
         $rutaCarpeta = $this->getRutaAbsoluta();
         if ($this->getCarpeta() === '' || !is_dir($rutaCarpeta)) {
             return [];
         }
-        $extensionesPermitidas = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-        $imagenes = [];
+        $permitidas = array_merge(self::EXT_IMAGEN, self::EXT_VIDEO);
+        $medios = [];
         foreach (scandir($rutaCarpeta) as $archivo) {
             if ($archivo === '.' || $archivo === '..') continue;
             $ext = strtolower(pathinfo($archivo, PATHINFO_EXTENSION));
-            if (in_array($ext, $extensionesPermitidas, true)) {
-                $imagenes[] = $archivo;
+            if (in_array($ext, $permitidas, true)) {
+                $medios[] = $archivo;
             }
         }
         $orden = $this->getFotosOrden();
         if ($orden) {
             $pos = array_flip($orden);
-            usort($imagenes, function ($a, $b) use ($pos) {
+            usort($medios, function ($a, $b) use ($pos) {
                 $pa = $pos[$a] ?? PHP_INT_MAX;
                 $pb = $pos[$b] ?? PHP_INT_MAX;
                 return $pa === $pb ? strcmp($a, $b) : $pa <=> $pb;
             });
         }
-        return $imagenes;
+        return $medios;
     }
 
     /** Imágenes de galería (sin la portada). */

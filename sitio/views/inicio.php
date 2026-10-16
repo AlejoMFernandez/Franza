@@ -42,7 +42,7 @@ $paso = $data['paso_a_paso'];
         </p>
         <div class="fz-hero__acciones">
             <button type="button" class="fz-btn fz-btn--oro" data-rayosx-toggle aria-pressed="false">Ver todo el antes</button>
-            <a href="#obras" class="fz-btn fz-btn--linea">Ver las obras</a>
+            <a href="<?= e(fz_aqui()) ?>#obras" class="fz-btn fz-btn--linea">Ver las obras</a>
         </div>
     </div>
     <a class="fz-hero__rotulo" href="<?= e(fz_url_obra((int) $hero['obra_id'])) ?>">
@@ -58,7 +58,7 @@ $paso = $data['paso_a_paso'];
             <span class="fz-mono fz-seccion-head__nota">Elegí una para ver los trabajos</span>
         </div>
         <div class="fz-selector__paneles">
-            <a class="fz-selector__panel" href="index.php?seccion=obrasciviles">
+            <a class="fz-selector__panel" href="<?= e(fz_url('obrasciviles')) ?>">
                 <img src="<?= e(fz_img('img/obrasciviles/restauraci-on-de-fachada/1_1771019414_0.jpg')) ?>" alt="Fachada restaurada por FRANZA" loading="lazy">
                 <span class="fz-selector__info">
                     <span class="fz-mono fz-oro">01 · Civil · <?= str_pad((string) $cantCiviles, 2, '0', STR_PAD_LEFT) ?> obras</span>
@@ -67,7 +67,7 @@ $paso = $data['paso_a_paso'];
                 </span>
                 <span class="fz-selector__flecha"><?= fz_flecha(26) ?></span>
             </a>
-            <a class="fz-selector__panel" href="index.php?seccion=obrasindustriales">
+            <a class="fz-selector__panel" href="<?= e(fz_url('obrasindustriales')) ?>">
                 <img src="<?= e(fz_img('img/obrasindustriales.webp')) ?>" alt="Planta industrial con sendas demarcadas por FRANZA" loading="lazy">
                 <span class="fz-selector__info">
                     <span class="fz-mono fz-oro">02 · Industrial<?= $cantIndustriales ? ' · ' . str_pad((string) $cantIndustriales, 2, '0', STR_PAD_LEFT) . ' obras' : '' ?></span>
@@ -121,11 +121,12 @@ $paso = $data['paso_a_paso'];
 </section>
 
 <!-- 4 · Obras destacadas -->
+<?php if ($destacadas): ?>
 <section class="fz-destacadas">
     <div class="fz-wrap">
         <div class="fz-seccion-head">
             <h2 class="fz-h2">Obras destacadas</h2>
-            <a class="fz-link-flecha" href="index.php?seccion=obrasciviles">Ver todas las obras <?= fz_flecha(18) ?></a>
+            <a class="fz-link-flecha" href="<?= e(fz_url('obrasciviles')) ?>">Ver todas las obras <?= fz_flecha(18) ?></a>
         </div>
         <div class="fz-destacadas__grid">
             <?php foreach ($destacadas as $i => $o): $extra = fz_extra($o); ?>
@@ -140,6 +141,7 @@ $paso = $data['paso_a_paso'];
         </div>
     </div>
 </section>
+<?php endif; ?>
 
 <!-- 5 · Paso a paso -->
 <section class="fz-paso" id="paso-a-paso" data-cinta>

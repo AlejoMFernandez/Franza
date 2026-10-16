@@ -47,6 +47,29 @@ if(!isset($listaRutas[$seccion])) {
 
 $rutaOpciones = $listaRutas[$seccion];
 
+// Obra pedida por su dirección linda (/obra/restauracion-de-fachada) o por número (viejo ?id=72).
+$obraActual = null;
+if ($seccion === 'obra-ver') {
+    $modeloObras = new \App\Modelos\Obras();
+    $slugPedido = trim((string) ($_GET['slug'] ?? ''), '/');
+    $obraActual = $slugPedido !== '' ? $modeloObras->porSlug($slugPedido) : $modeloObras->porId((int) ($_GET['id'] ?? 0));
+}
+
+// Si el servidor tiene direcciones lindas, las viejas (index.php?seccion=...) redirigen a las nuevas.
+if (fz_urls_lindas() && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+    $destino = null;
+    $pidioVieja = str_contains($_SERVER['REQUEST_URI'] ?? '', 'seccion=') || !empty($_GET['id']);
+    if ($pidioVieja && in_array($seccion, ['inicio', 'obrasciviles', 'obrasindustriales'], true)) {
+        $destino = fz_url($seccion);
+    } elseif ($pidioVieja && $obraActual && $obraActual->getSlug() !== '') {
+        $destino = fz_url_obra($obraActual);
+    }
+    if ($destino !== null) {
+        header('Location: ' . fz_url_absoluta($destino === './' ? '' : $destino), true, 301);
+        exit;
+    }
+}
+
 $seoPorSeccion = [
     'inicio' => [
         'titulo' => 'FRANZA Construcciones | Obras civiles e industriales en CABA y GBA',
@@ -73,28 +96,38 @@ $seoPorSeccion = [
 $seoActual = $seoPorSeccion[$seccion] ?? $seoPorSeccion['inicio'];
 $ogImagen = fz_url_absoluta('img/franza/og-franza.jpg');
 $ogTipo = 'website';
-$canonicalUrl = fz_url_absoluta($seccion === 'inicio' ? '' : 'index.php?seccion=' . $seccion);
+$ogTamano = [1200, 630];
+$ogAlt = 'FRANZA Construcciones — obras civiles e industriales';
+$canonicalUrl = fz_url_absoluta($seccion === 'inicio' ? '' : fz_url($seccion));
 $jsonLdExtra = null;
 
 // La ficha de obra arma su propio título, descripción e imagen para buscadores y redes.
 if ($seccion === 'obra-ver') {
-    $obraSeo = (new \App\Modelos\Obras())->porId((int) ($_GET['id'] ?? 0));
+    $obraSeo = $obraActual;
     if ($obraSeo) {
         $seoActual['titulo'] = $obraSeo->getTitulo() . ' en ' . $obraSeo->getUbicacion() . ' | FRANZA Construcciones';
         $desc = trim(preg_replace('/\s+/', ' ', $obraSeo->getExplicacion()));
         $seoActual['descripcion'] = mb_strlen($desc) > 155 ? rtrim(mb_substr($desc, 0, 152)) . '…' : $desc;
-        if ($obraSeo->getImagen()) {
-            $ogImagen = fz_url_absoluta(fz_img(fz_portada($obraSeo), 1600));
+        // Imagen para compartir: JPG 1200×630 con foto, logo y título (o la portada, si el servidor no puede armarla).
+        $portadaSeo = fz_sin_portada($obraSeo) ? '' : fz_portada($obraSeo);
+        $ogRel = \App\Imagenes\OgImagen::para($obraSeo, $portadaSeo);
+        if ($ogRel) {
+            $ogImagen = fz_url_absoluta($ogRel);
+            $ogTamano = [1200, 630];
+        } elseif ($portadaSeo !== '') {
+            $ogImagen = fz_url_absoluta(fz_img($portadaSeo, 1600));
+            $ogTamano = null;
         }
+        $ogAlt = $obraSeo->getTitulo() . ' en ' . $obraSeo->getUbicacion() . ' — obra de FRANZA Construcciones';
         $ogTipo = 'article';
-        $canonicalUrl = fz_url_absoluta(fz_url_obra($obraSeo->getObraId()));
+        $canonicalUrl = fz_url_absoluta(fz_url_obra($obraSeo));
         $seccionLista = $obraSeo->getTipo() === 'civil' ? 'obrasciviles' : 'obrasindustriales';
         $jsonLdExtra = [
             '@context' => 'https://schema.org',
             '@type' => 'BreadcrumbList',
             'itemListElement' => [
                 ['@type' => 'ListItem', 'position' => 1, 'name' => 'Inicio', 'item' => fz_url_absoluta('')],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => $obraSeo->getTipo() === 'civil' ? 'Obras civiles' : 'Obras industriales', 'item' => fz_url_absoluta('index.php?seccion=' . $seccionLista)],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => $obraSeo->getTipo() === 'civil' ? 'Obras civiles' : 'Obras industriales', 'item' => fz_url_absoluta(fz_url($seccionLista))],
                 ['@type' => 'ListItem', 'position' => 3, 'name' => $obraSeo->getTitulo(), 'item' => $canonicalUrl],
             ],
         ];
@@ -139,12 +172,14 @@ if($seccion === 'iniciar-sesion' || $seccion === 'registrarse') {
 if ($seccion === '404') { http_response_code(404); }
 $esInicio = ($seccion === 'inicio');
 $contacto = fz_data()['contacto'];
-$version = '2';
+$version = '6';
 ?>
 <!DOCTYPE html>
 <html lang="es-AR">
 <head>
     <meta charset="UTF-8">
+    <base href="<?= e(fz_base()) ?>">
+    <script>document.documentElement.classList.add('js');</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="cf-2fa-verify" content="W1x36AnsZ6pVFj3vdSj1">
     <meta name="facebook-domain-verification" content="5jkjdlc5h7cov244vpyeljxal0sx6o">
@@ -166,11 +201,16 @@ $version = '2';
     <meta property="og:description" content="<?= e($seoActual['descripcion']); ?>">
     <meta property="og:url" content="<?= e($canonicalUrl); ?>">
     <meta property="og:image" content="<?= e($ogImagen); ?>">
-    <meta property="og:image:alt" content="<?= e($seoActual['titulo']); ?>">
+    <?php if (str_starts_with($ogImagen, 'https://')): ?><meta property="og:image:secure_url" content="<?= e($ogImagen); ?>"><?php endif; ?>
+    <meta property="og:image:type" content="<?= str_ends_with($ogImagen, '.webp') ? 'image/webp' : 'image/jpeg' ?>">
+    <?php if ($ogTamano): ?><meta property="og:image:width" content="<?= $ogTamano[0] ?>">
+    <meta property="og:image:height" content="<?= $ogTamano[1] ?>"><?php endif; ?>
+    <meta property="og:image:alt" content="<?= e($ogAlt); ?>">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="<?= e($seoActual['titulo']); ?>">
     <meta name="twitter:description" content="<?= e($seoActual['descripcion']); ?>">
     <meta name="twitter:image" content="<?= e($ogImagen); ?>">
+    <meta name="twitter:image:alt" content="<?= e($ogAlt); ?>">
     <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?></script>
     <?php if ($jsonLdExtra): ?><script type="application/ld+json"><?= json_encode($jsonLdExtra, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?></script><?php endif; ?>
 
@@ -183,22 +223,23 @@ $version = '2';
     <link rel="stylesheet" href="styles/css/franza.css?v=<?= $version ?>">
 </head>
 <body class="fz seccion-<?= e($seccion) ?><?= $esInicio ? ' es-inicio' : '' ?>">
+<div class="fz-progreso" aria-hidden="true"></div>
 
 <?php if ($esInicio): require __DIR__ . '/views/partials/intro.php'; endif; ?>
 
 <header class="fz-header<?= $esInicio ? ' fz-header--sobre-hero' : '' ?>" id="fz-header">
     <div class="fz-header__inner">
-        <a href="index.php?seccion=inicio" class="fz-header__logo" aria-label="FRANZA Construcciones, ir al inicio">
+        <a href="<?= e(fz_url('inicio')) ?>" class="fz-header__logo" aria-label="FRANZA Construcciones, ir al inicio">
             <img src="img/franza/logo-claro.png" alt="FRANZA Construcciones" width="200" height="79">
         </a>
         <button type="button" class="fz-menu-btn" id="fz-menu-btn" aria-expanded="false" aria-controls="fz-nav" aria-label="Abrir menú">
             <span></span><span></span>
         </button>
         <nav class="fz-nav" id="fz-nav" aria-label="Principal">
-            <a href="index.php?seccion=obrasciviles" <?= $seccion === 'obrasciviles' ? 'aria-current="page"' : '' ?>>Obras civiles</a>
-            <a href="index.php?seccion=obrasindustriales" <?= $seccion === 'obrasindustriales' ? 'aria-current="page"' : '' ?>>Obras industriales</a>
-            <a href="index.php?seccion=inicio#paso-a-paso">Cómo trabajamos</a>
-            <a href="#contacto">Contacto</a>
+            <a href="<?= e(fz_url('obrasciviles')) ?>" <?= $seccion === 'obrasciviles' ? 'aria-current="page"' : '' ?>>Obras civiles</a>
+            <a href="<?= e(fz_url('obrasindustriales')) ?>" <?= $seccion === 'obrasindustriales' ? 'aria-current="page"' : '' ?>>Obras industriales</a>
+            <a href="<?= e(fz_url('inicio') . '#paso-a-paso') ?>">Cómo trabajamos</a>
+            <a href="<?= e(fz_aqui()) ?>#contacto">Contacto</a>
             <?php if ($autenticacion->estaAutenticado()): $usuario = $autenticacion->getUsuario(); ?>
                 <div class="fz-user">
                     <button type="button" class="fz-user__btn" aria-expanded="false">
@@ -243,9 +284,9 @@ $version = '2';
         <img src="img/franza/logo-claro.png" alt="FRANZA Construcciones" class="fz-footer__logo" width="200" height="79" loading="lazy">
         <div class="fz-footer__col">
             <b>Obras</b>
-            <a href="index.php?seccion=obrasciviles">Obras civiles</a>
-            <a href="index.php?seccion=obrasindustriales">Obras industriales</a>
-            <a href="index.php?seccion=inicio#paso-a-paso">Cómo trabajamos</a>
+            <a href="<?= e(fz_url('obrasciviles')) ?>">Obras civiles</a>
+            <a href="<?= e(fz_url('obrasindustriales')) ?>">Obras industriales</a>
+            <a href="<?= e(fz_url('inicio') . '#paso-a-paso') ?>">Cómo trabajamos</a>
         </div>
         <div class="fz-footer__col">
             <b>Contacto</b>
