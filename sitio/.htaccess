@@ -51,6 +51,10 @@ ServerSignature Off
     RewriteEngine On
     # Sin RewriteBase: funciona igual en el hosting (raíz) y en la compu (subcarpeta).
 
+    # Siempre con www (franza.com.ar → www.franza.com.ar), como estaba antes.
+    RewriteCond %{HTTP_HOST} ^franza\.com\.ar$ [NC]
+    RewriteRule ^(.*)$ https://www.franza.com.ar/$1 [R=301,L]
+
     # Le avisa a PHP que las direcciones lindas están activas.
     RewriteRule ^ - [E=FZ_URLS:1]
 
