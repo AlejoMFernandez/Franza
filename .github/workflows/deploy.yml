@@ -1,0 +1,49 @@
+# Publica el sitio en el hosting cada vez que se hace push a main.
+# Sube solo los archivos que cambiaron desde la última vez (por FTP).
+#
+# Configuración (una sola vez), en GitHub → Settings → Secrets and variables → Actions:
+#   FTP_SERVER    ej: ftp.franza.com.ar
+#   FTP_USERNAME  usuario FTP del hosting
+#   FTP_PASSWORD  contraseña FTP
+#   FTP_DIR       carpeta del sitio en el hosting, terminada en /  (ej: /public_html/)
+
+name: Publicar en el hosting
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # botón "Run workflow" para publicar a mano
+
+concurrency:
+  group: deploy-produccion
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bajar el código
+        uses: actions/checkout@v4
+
+      - name: Revisar que el PHP no tenga errores
+        run: |
+          find sitio -name "*.php" -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Subir los cambios por FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_DIR }}
+          local-dir: ./sitio/
+          # protocol: ftps   # descomentar si el hosting lo pide
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            classes/BaseDeDatos/DBConexion.php
+            img/obrasciviles/**
+            img/obrasindustriales/**
+            img/opt/**
+            img/tmp/**
