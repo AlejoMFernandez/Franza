@@ -35,6 +35,20 @@ jobs:
       - name: Marcar la versión que se publica
         run: echo "${GITHUB_SHA}" > sitio/version.txt
 
+      - name: Ver carpetas del hosting (diagnóstico)
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_DIR: ${{ secrets.FTP_DIR }}
+        run: |
+          listar() { echo "── $1"; curl -s --max-time 30 --list-only --user "${FTP_USERNAME}:${FTP_PASSWORD}" "ftp://${FTP_SERVER}/$2" | sed 's/^/   /' | head -40 || echo "   (no se pudo listar)"; }
+          listar "Raíz del usuario FTP" ""
+          listar "domains/" "domains/"
+          listar "Carpeta FTP_DIR (donde se sube)" "${FTP_DIR}"
+          echo "── ¿Está el index.php del sitio en FTP_DIR?"
+          if curl -s --max-time 30 --list-only --user "${FTP_USERNAME}:${FTP_PASSWORD}" "ftp://${FTP_SERVER}/${FTP_DIR}" | grep -qx "index.php"; then echo "   Sí"; else echo "   No"; fi
+
       - name: Subir los cambios por FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
